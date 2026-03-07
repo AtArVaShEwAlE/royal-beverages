@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block title %}Delivery Management - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .delivery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .delivery-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .delivery-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 5px solid #3a662c;
+        transition: all 0.3s;
+    }
+
+    .delivery-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+
+    .delivery-card.dispatched { border-left-color: #9b59b6; }
+    .delivery-card.packed { border-left-color: #3498db; }
+    .delivery-card.delivered { border-left-color: #27ae60; }
+
+    .delivery-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+    }
+
+    .delivery-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .delivery-info-item label {
+        font-size: 12px;
+        color: #666;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .delivery-info-item span {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .delivery-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .assign-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    .assign-form select,
+    .assign-form input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .delivery-person-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #e8f5e9;
+        color: #3a662c;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 8px 20px;
+        border: 2px solid #ddd;
+        border-radius: 20px;
+        cursor: pointer;
+        background: white;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .filter-tab.active,
+    .filter-tab:hover {
+        border-color: #3a662c;
+        background: #3a662c;
+        color: white;
+    }
+
+    .delivery-timeline {
+        position: relative;
+        padding-left: 30px;
+        margin-top: 15px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding: 10px 0;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .timeline-item::before {
+        content: '✓';
+        position: absolute;
+        left: -22px;
+        top: 12px;
+        width: 16px;
+        height: 16px;
+        background: #3a662c;
+        color: white;
+        border-radius: 50%;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .delivery-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .delivery-actions {
+            flex-direction: column;
+        }
+        .assign-form {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+
+    <!-- Page Header -->
+    <div class="delivery-header">
+        <div>
+            <h1 style="color: #3a662c; margin-bottom: 5px;">Delivery Management</h1>
+            <p style="color: #666;">Assign and track order deliveries</p>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card pending">
+            <h3>Ready to Dispatch</h3>
+            <div class="stat-value">{{ packed_count }}</div>
+            <p class="stat-label">Packed orders</p>
+        </div>
+        <div class="stat-card">
+            <h3>Out for Delivery</h3>
+            <div class="stat-value">{{ dispatched_count }}</div>
+            <p class="stat-label">Dispatched orders</p>
+        </div>
+        <div class="stat-card success">
+            <h3>Delivered Today</h3>
+            <div class="stat-value">{{ delivered_today }}</div>
+            <p class="stat-label">Completed today</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Delivered</h3>
+            <div class="stat-value">{{ total_delivered }}</div>
+            <p class="stat-label">All time</p>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" style="margin-top: 30px;">
+        <button class="filter-tab active" onclick="filterDeliveries('all', this)">All Orders</button>
+        <button class="filter-tab" onclick="filterDeliveries('packed', this)">📦 Packed</button>
+        <button class="filter-tab" onclick="filterDeliveries('dispatched', this)">🚚 Dispatched</button>
+        <button class="filter-tab" onclick="filterDeliveries('delivered', this)">✅ Delivered</button>
+    </div>
+
+    <!-- Delivery Orders List -->
+    {% if orders %}
+    <div class="delivery-grid" id="deliveryList">
+        {% for order in orders %}
+        <div class="delivery-card {{ order.status }}" data-status="{{ order.status }}">
+
+            <!-- Card Header -->
+            <div class="delivery-card-header">
+                <div>
+                    <div style="font-size: 18px; font-weight: bold; color: #3a662c;">
+                        {{ order.order_number }}
+                    </div>
+                    <div style="font-size: 13px; color: #666; margin-top: 3px;">
+                        {{ order.order_date.strftime('%d %b %Y') }}
+                    </div>
+                </div>
+                <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="delivery-info-grid">
+                <div class="delivery-info-item">
+                    <label>Client</label>
+                    <span>{{ order.organization_name }}</span>
+                </div>
+                <div class="delivery-info-item">
+                    <label>Contact</label>
+                    <span>{{ order.contact_person }}</span>
+                </div>
+                <div class="delivery-info-item">
+                    <label>Phone</label>
+                    <span>{{ order.contact_phone }}</span>
+                </div>
+                <div class="delivery-info-item">
+                    <label>Amount</label>
+                    <span style="color: #3a662c;">₹{{ "%.2f"|format(order.grand_total) }}</span>
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; font-size: 14px;">
+                <strong>📍 Delivery Address:</strong><br>
+                {{ order.address }}, {{ order.city }}, {{ order.state }} - {{ order.pincode }}
+            </div>
+
+            <!-- Assigned Delivery Person -->
+            {% if order.delivery_person_name %}
+            <div style="margin-top: 10px;">
+                <strong style="font-size: 13px; color: #666;">Assigned To:</strong><br>
+                <span class="delivery-person-badge" style="margin-top: 5px;">
+                    🚴 {{ order.delivery_person_name }}
+                </span>
+            </div>
+            {% endif %}
+
+            <!-- Delivery Notes -->
+            {% if order.delivery_notes %}
+            <div style="background: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px;">
+                <strong>📝 Delivery Notes:</strong> {{ order.delivery_notes }}
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="delivery-actions">
+                {% if order.status == 'packed' %}
+                <!-- Assign & Dispatch Form -->
+                <form method="POST" action="{{ url_for('assign_delivery') }}" style="width: 100%;">
+                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                    <div class="assign-form">
+                        <select name="delivery_person" required>
+                            <option value="">-- Assign Delivery Person --</option>
+                            {% for person in delivery_staff %}
+                            <option value="{{ person.user_id }}">{{ person.first_name }} {{ person.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="delivery_notes" placeholder="Delivery notes (optional)">
+                        <button type="submit" class="btn btn-primary">
+                            🚚 Dispatch Order
+                        </button>
+                    </div>
+                </form>
+
+                {% elif order.status == 'dispatched' %}
+                <!-- Mark as Delivered -->
+                <form method="POST" action="{{ url_for('mark_delivered') }}">
+                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                    <input type="text" name="delivery_notes" 
+                           placeholder="Delivery confirmation notes"
+                           style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+                    <button type="submit" class="btn btn-primary"
+                            onclick="return confirm('Mark this order as delivered?')">
+                        ✅ Mark as Delivered
+                    </button>
+                </form>
+                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                   class="btn btn-secondary btn-small" target="_blank">
+                    📄 Invoice
+                </a>
+
+                {% elif order.status == 'delivered' %}
+                <span style="color: #27ae60; font-weight: bold;">✅ Delivered Successfully</span>
+                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                   class="btn btn-secondary btn-small" target="_blank">
+                    📄 Invoice
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="margin-top: 20px;">
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 15px;">🚚</div>
+            <p>No orders ready for delivery yet.</p>
+            <p style="font-size: 13px;">Orders will appear here once they are packed.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterDeliveries(status, btn) {
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Filter cards
+        document.querySelectorAll('.delivery-card').forEach(card => {
+            if (status === 'all' || card.getAttribute('data-status') === status) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

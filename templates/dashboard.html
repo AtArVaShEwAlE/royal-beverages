@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    
+    <div class="dashboard-header">
+        <h1>Welcome, {{ session.first_name }}! 👋</h1>
+        <p>Admin Dashboard - Royal Beverages Supply & Distribution</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <div class="stat-value">{{ total_orders }}</div>
+            <p class="stat-label">All time orders</p>
+        </div>
+        <div class="stat-card pending">
+            <h3>Pending Orders</h3>
+            <div class="stat-value">{{ pending_orders }}</div>
+            <p class="stat-label">Awaiting approval</p>
+        </div>
+        <div class="stat-card success">
+            <h3>Total Revenue</h3>
+            <div class="stat-value">₹{{ "%.2f"|format(total_revenue) }}</div>
+            <p class="stat-label">Overall revenue</p>
+        </div>
+        <div class="stat-card">
+            <h3>Active Clients</h3>
+            <div class="stat-value">{{ total_clients }}</div>
+            <p class="stat-label">Registered clients</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('products') }}" class="action-btn">
+                📦 Manage Products
+            </a>
+            <a href="{{ url_for('manage_orders') }}" class="action-btn">
+                🛒 View Orders
+            </a>
+            <a href="{{ url_for('inventory') }}" class="action-btn">
+                📊 Check Inventory
+            </a>
+            <a href="{{ url_for('clients') }}" class="action-btn">
+                👥 Manage Clients
+            </a>
+            <a href="{{ url_for('delivery') }}" class="action-btn">
+                🚚 Delivery Management
+            </a>
+            <a href="{{ url_for('reports') }}" class="action-btn">
+                📈 View Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Recent Orders</h3>
+            <a href="{{ url_for('manage_orders') }}" style="color: #3a662c; font-size: 14px; text-decoration: none;">View All →</a>
+        </div>
+        {% if recent_orders %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9f9f9; text-align: left;">
+                    <th style="padding: 12px;">Order #</th>
+                    <th style="padding: 12px;">Client</th>
+                    <th style="padding: 12px;">Date</th>
+                    <th style="padding: 12px;">Amount</th>
+                    <th style="padding: 12px;">Status</th>
+                    <th style="padding: 12px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">{{ order.order_number }}</td>
+                    <td style="padding: 12px;">{{ order.organization_name }}</td>
+                    <td style="padding: 12px;">{{ order.order_date.strftime('%d %b %Y') }}</td>
+                    <td style="padding: 12px; font-weight: 600; color: #3a662c;">₹{{ "%.2f"|format(order.grand_total) }}</td>
+                    <td style="padding: 12px;">
+                        <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+                    </td>
+                    <td style="padding: 12px;">
+                        <a href="{{ url_for('manage_orders') }}" class="btn btn-secondary btn-small">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <p>No recent orders</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+        </div>
+        {% if recent_activity %}
+        <div style="padding: 10px 0;">
+            {% for activity in recent_activity %}
+            <div style="padding: 12px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px;">
+                <div style="font-size: 24px;">
+                    {% if activity.activity_type == 'order' %}📦
+                    {% elif activity.activity_type == 'stock' %}📊
+                    {% elif activity.activity_type == 'client' %}👤
+                    {% else %}✨{% endif %}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #333;">{{ activity.description }}</div>
+                    <div style="font-size: 13px; color: #999; margin-top: 3px;">{{ activity.time }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <p>No recent activity</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

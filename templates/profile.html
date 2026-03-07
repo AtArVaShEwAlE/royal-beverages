@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #3a662c, #5a9e42);
+        color: white;
+        padding: 30px;
+        border-radius: 10px 10px 0 0;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: white;
+        color: #3a662c;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .tabs {
+        display: flex;
+        background: #f5f5f5;
+        border-radius: 0;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.3s;
+    }
+
+    .tab.active {
+        background: white;
+        color: #3a662c;
+        border-bottom: 3px solid #3a662c;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 30px;
+        background: white;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3a662c;
+    }
+
+    .form-group input:read-only {
+        background: #f5f5f5;
+        cursor: not-allowed;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .info-item {
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-admin {
+        background: #3a662c;
+        color: white;
+    }
+
+    .badge-client {
+        background: #3498db;
+        color: white;
+    }
+
+    /* Password Requirements */
+    .password-requirements {
+        margin-top: 10px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .password-requirements h4 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .requirement {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        color: #666;
+    }
+
+    .requirement.met {
+        color: #27ae60;
+    }
+
+    .requirement .check {
+        width: 20px;
+        font-weight: bold;
+    }
+
+    .requirement.met .check {
+        color: #27ae60;
+    }
+
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .tabs {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {{ user.first_name[0] }}{{ user.last_name[0] }}
+        </div>
+        <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+        <p>{{ user.email }}</p>
+        <span class="badge badge-{{ 'admin' if user.role in ['admin', 'staff'] else 'client' }}">
+            {{ user.role|upper }}
+        </span>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="margin: 20px 0;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="openTab(event, 'personal')">Personal Info</button>
+        <button class="tab" onclick="openTab(event, 'password')">Change Password</button>
+        {% if session.get('role') == 'client' %}
+        <button class="tab" onclick="openTab(event, 'business')">Business Details</button>
+        {% endif %}
+        <button class="tab" onclick="openTab(event, 'activity')">Account Activity</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div>
+        <!-- Personal Info Tab -->
+        <div id="personal" class="tab-content active">
+            <h2>Personal Information</h2>
+            <form method="POST" action="{{ url_for('update_profile') }}">
+                <input type="hidden" name="form_type" value="personal_info">
+                
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>First Name *</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name *</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" required>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" value="{{ user.phone or '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" value="{{ user.username }}" readonly>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Personal Info</button>
+            </form>
+        </div>
+
+        <!-- Change Password Tab -->
+        <div id="password" class="tab-content">
+            <h2>Change Password</h2>
+            <form method="POST" action="{{ url_for('update_profile') }}" id="changePasswordForm">
+                <input type="hidden" name="form_type" value="change_password">
+                
+                <div class="form-group">
+                    <label>Current Password *</label>
+                    <input type="password" name="current_password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>New Password *</label>
+                    <input type="password" name="new_password" id="newPassword" required>
+                    
+                    <div class="password-requirements">
+                        <h4>Password Requirements:</h4>
+                        <div class="requirement" id="req-length">
+                            <span class="check">○</span>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="requirement" id="req-uppercase">
+                            <span class="check">○</span>
+                            <span>One uppercase letter (A-Z)</span>
+                        </div>
+                        <div class="requirement" id="req-lowercase">
+                            <span class="check">○</span>
+                            <span>One lowercase letter (a-z)</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <span class="check">○</span>
+                            <span>One number (0-9)</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <span class="check">○</span>
+                            <span>One special character (!@#$%^&*)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm New Password *</label>
+                    <input type="password" name="confirm_password" id="confirmPassword" required>
+                    <div id="passwordMatch" style="margin-top: 5px; font-size: 13px;"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="changePasswordBtn" disabled>
+                    Change Password
+                </button>
+            </form>
+        </div>
+
+        <!-- Business Details Tab (Client Only) -->
+        {% if session.get('role') == 'client' and client %}
+        <div id="business" class="tab-content">
+            <h2>Business Details</h2>
+            <form method="POST" action="{{ url_for('update_profile') }}">
+                <input type="hidden" name="form_type" value="business_info">
+                
+                <div class="form-group">
+                    <label>Organization Name *</label>
+                    <input type="text" name="organization_name" value="{{ client.organization_name }}" required>
+                </div>
+
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>Contact Person *</label>
+                        <input type="text" name="contact_person" value="{{ client.contact_person }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone *</label>
+                        <input type="tel" name="contact_phone" value="{{ client.contact_phone }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Email *</label>
+                    <input type="email" name="contact_email" value="{{ client.contact_email }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Address *</label>
+                    <textarea name="address" rows="3" required>{{ client.address }}</textarea>
+                </div>
+
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>City *</label>
+                        <input type="text" name="city" value="{{ client.city }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>State *</label>
+                        <input type="text" name="state" value="{{ client.state }}" required>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label>Pincode *</label>
+                        <input type="text" name="pincode" value="{{ client.pincode }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>GST Number</label>
+                        <input type="text" name="gst_number" value="{{ client.gst_number or '' }}">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Update Business Info</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Account Activity Tab -->
+        <div id="activity" class="tab-content">
+            <h2>Account Activity</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">{{ user.created_at.strftime('%d %b %Y') }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-value">{{ 'Active' if user.is_active else 'Inactive' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Role</div>
+                    <div class="info-value">{{ user.role|title }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">User ID</div>
+                    <div class="info-value">#{{ user.user_id }}</div>
+                </div>
+
+                {% if session.get('role') == 'client' %}
+                <div class="info-item">
+                    <div class="info-label">Total Orders</div>
+                    <div class="info-value">{{ activity.total_orders }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Total Spent</div>
+                    <div class="info-value">₹{{ "%.2f"|format(activity.total_spent) }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Pending Orders</div>
+                    <div class="info-value">{{ activity.pending_orders }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        const tabContents = document.getElementsByClassName('tab-content');
+        for (let content of tabContents) {
+            content.classList.remove('active');
+        }
+
+        const tabs = document.getElementsByClassName('tab');
+        for (let tab of tabs) {
+            tab.classList.remove('active');
+        }
+
+        document.getElementById(tabName).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    // Password validation for change password
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+    const requirements = {
+        length: { regex: /.{8,}/, element: document.getElementById('req-length') },
+        uppercase: { regex: /[A-Z]/, element: document.getElementById('req-uppercase') },
+        lowercase: { regex: /[a-z]/, element: document.getElementById('req-lowercase') },
+        number: { regex: /[0-9]/, element: document.getElementById('req-number') },
+        special: { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, element: document.getElementById('req-special') }
+    };
+
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', validatePassword);
+        confirmPasswordInput.addEventListener('input', validatePassword);
+    }
+
+    function validatePassword() {
+        const password = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        let allMet = true;
+
+        // Check each requirement
+        for (let key in requirements) {
+            const req = requirements[key];
+            const met = req.regex.test(password);
+            
+            if (met) {
+                req.element.classList.add('met');
+                req.element.querySelector('.check').textContent = '✓';
+            } else {
+                req.element.classList.remove('met');
+                req.element.querySelector('.check').textContent = '○';
+                allMet = false;
+            }
+        }
+
+        // Check password match
+        const passwordMatch = document.getElementById('passwordMatch');
+        if (confirmPassword) {
+            if (password === confirmPassword) {
+                passwordMatch.textContent = '✓ Passwords match';
+                passwordMatch.style.color = '#27ae60';
+            } else {
+                passwordMatch.textContent = '✗ Passwords do not match';
+                passwordMatch.style.color = '#e74c3c';
+                allMet = false;
+            }
+        } else {
+            passwordMatch.textContent = '';
+        }
+
+        // Enable/disable button
+        changePasswordBtn.disabled = !(allMet && password === confirmPassword && confirmPassword.length > 0);
+    }
+</script>
+{% endblock %}

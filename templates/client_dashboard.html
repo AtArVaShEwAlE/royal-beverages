@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Client Dashboard - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    
+    <div class="dashboard-header">
+        <h1>Welcome, {{ session.first_name }}! 👋</h1>
+        <p>Client Dashboard - Royal Beverages Supply & Distribution</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <div class="stat-value">{{ total_orders }}</div>
+            <p class="stat-label">All time</p>
+        </div>
+        <div class="stat-card pending">
+            <h3>Pending Orders</h3>
+            <div class="stat-value">{{ pending_orders }}</div>
+            <p class="stat-label">Awaiting approval</p>
+        </div>
+        <div class="stat-card success">
+            <h3>Completed Orders</h3>
+            <div class="stat-value">{{ delivered_orders }}</div>
+            <p class="stat-label">Successfully delivered</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Spent</h3>
+            <div class="stat-value">₹{{ "%.2f"|format(total_spent) }}</div>
+            <p class="stat-label">Overall</p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('place_order') }}" class="action-btn">
+                🛒 Place New Order
+            </a>
+            <a href="{{ url_for('my_orders') }}" class="action-btn">
+                📦 View My Orders
+            </a>
+            <a href="{{ url_for('products') }}" class="action-btn">
+                📋 Browse Products
+            </a>
+            <a href="{{ url_for('profile') }}" class="action-btn">
+                👤 Manage Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card" style="margin-top: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Recent Orders</h3>
+            <a href="{{ url_for('my_orders') }}" style="color: #3a662c; font-size: 14px; text-decoration: none;">View All →</a>
+        </div>
+        {% if recent_orders %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f9f9f9; text-align: left;">
+                    <th style="padding: 12px;">Order #</th>
+                    <th style="padding: 12px;">Date</th>
+                    <th style="padding: 12px;">Items</th>
+                    <th style="padding: 12px;">Amount</th>
+                    <th style="padding: 12px;">Status</th>
+                    <th style="padding: 12px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; font-weight: 600;">{{ order.order_number }}</td>
+                    <td style="padding: 12px;">{{ order.order_date.strftime('%d %b %Y') }}</td>
+                    <td style="padding: 12px;">{{ order.item_count }} items</td>
+                    <td style="padding: 12px; font-weight: 600; color: #3a662c;">₹{{ "%.2f"|format(order.grand_total) }}</td>
+                    <td style="padding: 12px;">
+                        <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+                    </td>
+                    <td style="padding: 12px;">
+                        {% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}
+                        <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                           class="btn btn-secondary btn-small" target="_blank">Invoice</a>
+                        {% else %}
+                        <a href="{{ url_for('my_orders') }}" class="btn btn-secondary btn-small">View</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <p>No orders yet. <a href="{{ url_for('place_order') }}" style="color: #3a662c;">Place your first order!</a></p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

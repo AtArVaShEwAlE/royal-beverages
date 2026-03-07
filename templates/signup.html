@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<style>
+    .signup-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group label .required {
+        color: #e74c3c;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #3a662c;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    /* Password Strength Indicator */
+    .password-requirements {
+        margin-top: 10px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .password-requirements h4 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .requirement {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        color: #666;
+        transition: color 0.2s;
+    }
+
+    .requirement.met {
+        color: #27ae60;
+    }
+
+    .requirement.met .check {
+        color: #27ae60;
+        font-weight: bold;
+    }
+
+    .requirement .check {
+        width: 20px;
+        color: #ccc;
+    }
+
+    .password-strength-meter {
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+    }
+
+    .strength-weak { 
+        width: 33%; 
+        background: #e74c3c; 
+    }
+
+    .strength-medium { 
+        width: 66%; 
+        background: #f39c12; 
+    }
+
+    .strength-strong { 
+        width: 100%; 
+        background: #27ae60; 
+    }
+
+    .strength-text {
+        text-align: center;
+        margin-top: 5px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .btn-signup {
+        width: 100%;
+        padding: 14px;
+        background: #3a662c;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-signup:hover {
+        background: #2d5022;
+    }
+
+    .btn-signup:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #666;
+    }
+
+    .login-link a {
+        color: #3a662c;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c00;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .success-message {
+        background: #efe;
+        color: #060;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .help-text {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .gst-example {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        font-family: monospace;
+        background: #f5f5f5;
+        padding: 5px 10px;
+        border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-container">
+    <h1 style="text-align: center; color: #3a662c; margin-bottom: 10px;">Create Account</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 30px;">Join Royal Beverages Supply & Distribution</p>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="success-message">{{ success }}</div>
+    {% endif %}
+
+    <form method="POST" id="signupForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label>First Name <span class="required">*</span></label>
+                <input type="text" name="first_name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Last Name <span class="required">*</span></label>
+                <input type="text" name="last_name" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" name="email" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Username <span class="required">*</span></label>
+                <input type="text" name="username" required minlength="3">
+            </div>
+
+            <div class="form-group">
+                <label>Phone <span class="required">*</span></label>
+                <input type="tel" name="phone" required pattern="[0-9]{10}">
+                <div class="help-text">10 digit mobile number</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Organization Name <span class="required">*</span></label>
+            <input type="text" name="organization" required>
+        </div>
+
+        <div class="form-group">
+            <label>GST Number <span class="required">*</span></label>
+            <input type="text" name="gst_number" required 
+                   placeholder="27AAAAA0000A1Z5" 
+                   pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}"
+                   maxlength="15"
+                   style="text-transform: uppercase;">
+            <div class="gst-example">Example: 27CUZPS1971H1ZP</div>
+            <div class="help-text">15 character GST identification number (mandatory for B2B)</div>
+        </div>
+
+        <div class="form-group">
+            <label>Password <span class="required">*</span></label>
+            <input type="password" name="password" id="password" required>
+            
+            <div class="password-requirements">
+                <h4>Password Requirements:</h4>
+                <div class="requirement" id="req-length">
+                    <span class="check">○</span>
+                    <span>At least 8 characters</span>
+                </div>
+                <div class="requirement" id="req-uppercase">
+                    <span class="check">○</span>
+                    <span>One uppercase letter (A-Z)</span>
+                </div>
+                <div class="requirement" id="req-lowercase">
+                    <span class="check">○</span>
+                    <span>One lowercase letter (a-z)</span>
+                </div>
+                <div class="requirement" id="req-number">
+                    <span class="check">○</span>
+                    <span>One number (0-9)</span>
+                </div>
+                <div class="requirement" id="req-special">
+                    <span class="check">○</span>
+                    <span>One special character (!@#$%^&*)</span>
+                </div>
+
+                <div class="password-strength-meter">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+                <div class="strength-text" id="strengthText"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Confirm Password <span class="required">*</span></label>
+            <input type="password" name="confirm_password" id="confirmPassword" required>
+            <div id="passwordMatch" style="margin-top: 5px; font-size: 13px;"></div>
+        </div>
+
+        <input type="hidden" name="role" value="client">
+
+        <button type="submit" class="btn-signup" id="submitBtn" disabled>Create Account</button>
+    </form>
+
+    <div class="login-link">
+        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+    </div>
+</div>
+
+<script>
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+
+    // Password requirements
+    const requirements = {
+        length: { regex: /.{8,}/, element: document.getElementById('req-length') },
+        uppercase: { regex: /[A-Z]/, element: document.getElementById('req-uppercase') },
+        lowercase: { regex: /[a-z]/, element: document.getElementById('req-lowercase') },
+        number: { regex: /[0-9]/, element: document.getElementById('req-number') },
+        special: { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, element: document.getElementById('req-special') }
+    };
+
+    // Auto uppercase GST input
+    const gstInput = document.querySelector('input[name="gst_number"]');
+    if (gstInput) {
+        gstInput.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+    }
+
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let metCount = 0;
+
+        // Check each requirement
+        for (let key in requirements) {
+            const req = requirements[key];
+            const met = req.regex.test(password);
+            
+            if (met) {
+                req.element.classList.add('met');
+                req.element.querySelector('.check').textContent = '✓';
+                metCount++;
+            } else {
+                req.element.classList.remove('met');
+                req.element.querySelector('.check').textContent = '○';
+            }
+        }
+
+        // Update strength bar
+        strengthBar.className = 'password-strength-bar';
+        if (metCount === 0) {
+            strengthBar.className = 'password-strength-bar';
+            strengthText.textContent = '';
+        } else if (metCount <= 2) {
+            strengthBar.className = 'password-strength-bar strength-weak';
+            strengthText.textContent = 'Weak';
+            strengthText.style.color = '#e74c3c';
+        } else if (metCount <= 4) {
+            strengthBar.className = 'password-strength-bar strength-medium';
+            strengthText.textContent = 'Medium';
+            strengthText.style.color = '#f39c12';
+        } else {
+            strengthBar.className = 'password-strength-bar strength-strong';
+            strengthText.textContent = 'Strong';
+            strengthText.style.color = '#27ae60';
+        }
+
+        checkFormValidity();
+    });
+
+    confirmPasswordInput.addEventListener('input', checkFormValidity);
+
+    function checkFormValidity() {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const passwordMatch = document.getElementById('passwordMatch');
+
+        // Check if all requirements are met
+        let allMet = true;
+        for (let key in requirements) {
+            if (!requirements[key].regex.test(password)) {
+                allMet = false;
+                break;
+            }
+        }
+
+        // Check password match
+        if (confirmPassword) {
+            if (password === confirmPassword) {
+                passwordMatch.textContent = '✓ Passwords match';
+                passwordMatch.style.color = '#27ae60';
+            } else {
+                passwordMatch.textContent = '✗ Passwords do not match';
+                passwordMatch.style.color = '#e74c3c';
+            }
+        } else {
+            passwordMatch.textContent = '';
+        }
+
+        // Enable submit button only if all requirements met and passwords match
+        submitBtn.disabled = !(allMet && password === confirmPassword && confirmPassword.length > 0);
+    }
+</script>
+{% endblock %}

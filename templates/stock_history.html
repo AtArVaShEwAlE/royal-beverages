@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock History - {{ product.product_name }} - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/inventory.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    
+    <!-- Page Header -->
+    <div class="inventory-header">
+        <div>
+            <h1 style="color: #3a662c; margin-bottom: 5px;">Stock History</h1>
+            <p style="color: #666;">{{ product.product_name }}</p>
+        </div>
+        <a href="{{ url_for('inventory') }}" class="btn btn-secondary">← Back to Inventory</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Product Summary Card -->
+    <div class="history-card">
+        <h3 style="color: #3a662c; margin-bottom: 15px;">Product Details</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div>
+                <strong>Product:</strong> {{ product.product_name }}
+            </div>
+            <div>
+                <strong>Category:</strong> {{ product.category_name }}
+            </div>
+            <div>
+                <strong>Packaging:</strong> {{ product.packaging_size }}
+            </div>
+            <div>
+                <strong>Current Stock:</strong> 
+                <span style="font-size: 18px; font-weight: bold; color: #3a662c;">
+                    {{ product.quantity_in_stock }} units
+                </span>
+            </div>
+            <div>
+                <strong>Unit Price:</strong> ₹{{ "%.2f"|format(product.unit_price) }}
+            </div>
+            <div>
+                <strong>Stock Value:</strong> ₹{{ "%.2f"|format(product.quantity_in_stock * product.unit_price) }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Statistics -->
+    <div class="stats-grid" style="margin-top: 20px;">
+        <div class="stat-card">
+            <h3>Total Additions</h3>
+            <div class="stat-value">
+                {{ logs|selectattr('log_type', 'equalto', 'addition')|list|length }}
+            </div>
+            <p class="stat-label">Stock added</p>
+        </div>
+        <div class="stat-card warning">
+            <h3>Total Deductions</h3>
+            <div class="stat-value">
+                {{ logs|selectattr('log_type', 'equalto', 'deduction')|list|length }}
+            </div>
+            <p class="stat-label">Stock removed</p>
+        </div>
+        <div class="stat-card pending">
+            <h3>Adjustments</h3>
+            <div class="stat-value">
+                {{ logs|selectattr('log_type', 'equalto', 'adjustment')|list|length }}
+            </div>
+            <p class="stat-label">Stock corrections</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Logs</h3>
+            <div class="stat-value">{{ logs|length }}</div>
+            <p class="stat-label">All stock changes</p>
+        </div>
+    </div>
+
+    <!-- Stock History Timeline -->
+    <div class="history-card" style="margin-top: 30px;">
+        <h3 style="color: #3a662c; margin-bottom: 20px;">Stock Change History</h3>
+        
+        {% if logs %}
+        <div class="history-timeline">
+            {% for log in logs %}
+            <div class="history-item {{ log.log_type }}">
+                <div class="history-header">
+                    <span class="history-type">
+                        {% if log.log_type == 'addition' %}
+                            ✓ Stock Added
+                        {% elif log.log_type == 'deduction' %}
+                            ✗ Stock Removed
+                        {% else %}
+                            ⚙️ Stock Adjusted
+                        {% endif %}
+                    </span>
+                    <span class="history-date">
+                        {{ log.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                    </span>
+                </div>
+                
+                <div class="history-quantity {% if log.quantity_changed > 0 %}positive{% else %}negative{% endif %}">
+                    {% if log.quantity_changed > 0 %}
+                        +{{ log.quantity_changed }} units
+                    {% else %}
+                        {{ log.quantity_changed }} units
+                    {% endif %}
+                </div>
+                
+                {% if log.reason %}
+                <div class="history-reason">
+                    <strong>Reason:</strong> {{ log.reason }}
+                </div>
+                {% endif %}
+                
+                <div class="history-user">
+                    <strong>By:</strong> {{ log.first_name }} {{ log.last_name }} (@{{ log.username }})
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+            <p>No stock history available for this product yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="margin-top: 30px; display: flex; gap: 15px;">
+        <a href="{{ url_for('inventory') }}" class="btn btn-primary">Back to Inventory</a>
+        <button onclick="window.print()" class="btn btn-secondary">🖨️ Print History</button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log('Stock history loaded successfully!');
+</script>
+{% endblock %}

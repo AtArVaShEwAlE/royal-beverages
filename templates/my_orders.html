@@ -1,0 +1,684 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    /* Modal Overlay */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Modal Container */
+    .modal-container {
+        background: white;
+        border-radius: 15px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Modal Header */
+    .modal-header {
+        background: linear-gradient(135deg, #3a662c, #5a9e42);
+        color: white;
+        padding: 25px;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+    }
+
+    /* Modal Body */
+    .modal-body {
+        padding: 30px;
+    }
+
+    /* Star Rating */
+    .star-rating {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+        font-size: 40px;
+    }
+
+    .star {
+        cursor: pointer;
+        color: #ddd;
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .star:hover,
+    .star.active {
+        color: #ffd700;
+        transform: scale(1.1);
+    }
+
+    .star.active {
+        animation: starPop 0.3s ease;
+    }
+
+    @keyframes starPop {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+    }
+
+    .rating-text {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: #3a662c;
+        margin-top: 10px;
+        min-height: 30px;
+    }
+
+    /* Comments Textarea */
+    .comments-box {
+        width: 100%;
+        min-height: 100px;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.2s;
+        margin-top: 20px;
+    }
+
+    .comments-box:focus {
+        outline: none;
+        border-color: #3a662c;
+    }
+
+    /* Contact Support Cards */
+    .support-option {
+        background: #f9f9f9;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .support-option:hover {
+        border-color: #3a662c;
+        background: #f0f8f0;
+        transform: translateX(5px);
+    }
+
+    .support-icon {
+        font-size: 30px;
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .support-info h4 {
+        margin: 0 0 5px 0;
+        color: #3a662c;
+        font-size: 16px;
+    }
+
+    .support-info p {
+        margin: 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    /* Modal Footer */
+    .modal-footer {
+        padding: 20px 30px;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-btn-primary {
+        background: #3a662c;
+        color: white;
+    }
+
+    .modal-btn-primary:hover {
+        background: #2d5022;
+        transform: translateY(-1px);
+    }
+
+    .modal-btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .modal-btn-secondary:hover {
+        background: #d0d0d0;
+    }
+
+    /* Success Message */
+    .success-message {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .success-icon {
+        font-size: 60px;
+        color: #27ae60;
+        margin-bottom: 15px;
+    }
+
+    .success-message h3 {
+        color: #3a662c;
+        margin-bottom: 10px;
+    }
+
+    .success-message p {
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    
+    <!-- Page Header -->
+    <div class="order-header">
+        <div>
+            <h1 style="color: #3a662c; margin-bottom: 5px;">My Orders</h1>
+            <p style="color: #666;">View your order history and track status</p>
+        </div>
+        <a href="{{ url_for('place_order') }}" class="btn btn-primary">+ Place New Order</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Order Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <div class="stat-value">{{ orders|length }}</div>
+            <p class="stat-label">All time</p>
+        </div>
+        <div class="stat-card pending">
+            <h3>Pending Orders</h3>
+            <div class="stat-value">{{ pending_count }}</div>
+            <p class="stat-label">Awaiting approval</p>
+        </div>
+        <div class="stat-card success">
+            <h3>Completed Orders</h3>
+            <div class="stat-value">{{ delivered_count }}</div>
+            <p class="stat-label">Successfully delivered</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Spent</h3>
+            <div class="stat-value">₹{{ "%.2f"|format(total_spent) }}</div>
+            <p class="stat-label">All orders</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="order-filter-bar">
+        <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="🔍 Search by order number..."
+            onkeyup="filterOrders()"
+        >
+        <select id="statusFilter" onchange="filterOrders()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="packed">Packed</option>
+            <option value="dispatched">Dispatched</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+    </div>
+
+    <!-- Orders List -->
+    {% if orders %}
+    <div id="ordersList">
+        {% for order in orders %}
+        <div class="order-card {{ order.status }}" 
+             data-order-number="{{ order.order_number|lower }}"
+             data-status="{{ order.status }}">
+            
+            <!-- Order Header -->
+            <div class="order-card-header">
+                <div>
+                    <div class="order-number">{{ order.order_number }}</div>
+                    <div class="order-date">{{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}</div>
+                </div>
+                <div>
+                    <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+                </div>
+            </div>
+
+            <!-- Order Details Grid -->
+            <div class="order-details-grid">
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Order Date</div>
+                    <div class="order-detail-value">{{ order.order_date.strftime('%d %b %Y') }}</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Items</div>
+                    <div class="order-detail-value">{{ order.order_items|length }} items</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Subtotal</div>
+                    <div class="order-detail-value">₹{{ "%.2f"|format(order.total_amount) }}</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Total Amount</div>
+                    <div class="order-detail-value" style="color: #3a662c; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="order-items-section">
+                <h4>Order Items:</h4>
+                {% for item in order.order_items %}
+                <div class="order-item">
+                    <span>{{ item.product_name }} ({{ item.quantity }} x ₹{{ "%.2f"|format(item.unit_price) }})</span>
+                    <span style="font-weight: bold;">₹{{ "%.2f"|format(item.total_price) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if order.notes %}
+            <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <strong>Your Notes:</strong> {{ order.notes }}
+            </div>
+            {% endif %}
+
+            <!-- Order Status Timeline -->
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                <strong style="color: #3a662c;">Order Status:</strong>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <span class="{% if order.status in ['pending', 'approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
+                        ✓ Placed
+                    </span>
+                    <span class="{% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
+                        {% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Approved
+                    </span>
+                    <span class="{% if order.status in ['packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
+                        {% if order.status in ['packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Packed
+                    </span>
+                    <span class="{% if order.status in ['dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
+                        {% if order.status in ['dispatched', 'delivered'] %}✓{% else %}○{% endif %} Dispatched
+                    </span>
+                    <span class="{% if order.status == 'delivered' %}status-badge delivered{% else %}status-badge{% endif %}" style="font-size: 12px;">
+                        {% if order.status == 'delivered' %}✓{% else %}○{% endif %} Delivered
+                    </span>
+                </div>
+            </div>
+
+            <!-- Order Actions -->
+            <div class="order-actions">
+                {% if order.status == 'pending' %}
+                <button class="btn btn-secondary btn-small" onclick="alert('Order is pending admin approval')">
+                    ⏳ Awaiting Approval
+                </button>
+                
+                {% elif order.status == 'cancelled' %}
+                <button class="btn btn-secondary btn-small" onclick="openContactSupport('{{ order.order_number }}')">
+                    📞 Contact Support
+                </button>
+                <span style="color: #e74c3c; font-size: 13px; margin-left: 10px;">Order was cancelled</span>
+                
+                {% elif order.status == 'delivered' %}
+                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                   class="btn btn-primary btn-small"
+                   target="_blank">
+                    📄 Download Invoice
+                </a>
+                <button class="btn btn-secondary btn-small" onclick="openFeedbackModal({{ order.order_id }}, '{{ order.order_number }}')">
+                    ⭐ Give Feedback
+                </button>
+                
+                {% elif order.status in ['approved', 'packed', 'dispatched'] %}
+                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                   class="btn btn-primary btn-small"
+                   target="_blank">
+                    📄 Download Invoice
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
+            <p>You haven't placed any orders yet.</p>
+            <a href="{{ url_for('place_order') }}" class="btn btn-primary" style="margin-top: 15px;">Place Your First Order</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>⭐ Rate Your Experience</h2>
+            <button class="modal-close" onclick="closeFeedbackModal()">×</button>
+        </div>
+        <div class="modal-body" id="feedbackBody">
+            <p style="text-align: center; color: #666; margin-bottom: 10px;">
+                Order: <strong id="feedbackOrderNumber"></strong>
+            </p>
+            <div class="star-rating" id="starRating">
+                <span class="star" data-rating="1" onclick="setRating(1)">★</span>
+                <span class="star" data-rating="2" onclick="setRating(2)">★</span>
+                <span class="star" data-rating="3" onclick="setRating(3)">★</span>
+                <span class="star" data-rating="4" onclick="setRating(4)">★</span>
+                <span class="star" data-rating="5" onclick="setRating(5)">★</span>
+            </div>
+            <div class="rating-text" id="ratingText"></div>
+            <textarea 
+                class="comments-box" 
+                id="feedbackComments" 
+                placeholder="Tell us about your experience (optional)..."
+            ></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
+            <button class="modal-btn modal-btn-primary" onclick="submitFeedback()" id="submitBtn">Submit Feedback</button>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Support Modal -->
+<div id="supportModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>📞 Contact Support</h2>
+            <button class="modal-close" onclick="closeSupportModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                We're here to help with order: <strong id="supportOrderNumber"></strong>
+            </p>
+            
+            <div class="support-option" onclick="contactEmail()">
+                <div class="support-icon">📧</div>
+                <div class="support-info">
+                    <h4>Email Support</h4>
+                    <p>support@royalbeverages.com</p>
+                </div>
+            </div>
+
+            <div class="support-option" onclick="contactPhone()">
+                <div class="support-icon">📱</div>
+                <div class="support-info">
+                    <h4>Phone Support</h4>
+                    <p>+91-1234567890</p>
+                </div>
+            </div>
+
+            <div class="support-option" onclick="contactWhatsApp()">
+                <div class="support-icon">💬</div>
+                <div class="support-info">
+                    <h4>WhatsApp</h4>
+                    <p>+91-1234567890</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentOrderId = null;
+    let currentRating = 0;
+
+    function filterOrders() {
+        const searchInput = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        
+        const orderCards = document.querySelectorAll('.order-card');
+        
+        orderCards.forEach(card => {
+            const orderNumber = card.getAttribute('data-order-number');
+            const status = card.getAttribute('data-status');
+            
+            let showCard = true;
+            
+            if (searchInput && !orderNumber.includes(searchInput)) {
+                showCard = false;
+            }
+            
+            if (statusFilter && status !== statusFilter) {
+                showCard = false;
+            }
+            
+            card.style.display = showCard ? 'block' : 'none';
+        });
+    }
+
+    // Feedback Modal Functions
+    function openFeedbackModal(orderId, orderNumber) {
+        currentOrderId = orderId;
+        currentRating = 0;
+        document.getElementById('feedbackOrderNumber').textContent = orderNumber;
+        document.getElementById('feedbackComments').value = '';
+        document.getElementById('ratingText').textContent = '';
+        document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+        document.getElementById('feedbackModal').classList.add('active');
+    }
+
+    function closeFeedbackModal() {
+        document.getElementById('feedbackModal').classList.remove('active');
+    }
+
+    function setRating(rating) {
+        currentRating = rating;
+        const stars = document.querySelectorAll('.star');
+        const ratingText = document.getElementById('ratingText');
+        
+        const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        ratingText.textContent = labels[rating];
+        
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    function submitFeedback() {
+        if (currentRating === 0) {
+            alert('Please select a rating');
+            return;
+        }
+
+        const comments = document.getElementById('feedbackComments').value;
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.textContent = 'Submitting...';
+        submitBtn.disabled = true;
+
+        fetch('/feedback/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                order_id: currentOrderId,
+                rating: currentRating,
+                comments: comments
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessMessage();
+            } else {
+                alert('Error: ' + data.message);
+                submitBtn.textContent = 'Submit Feedback';
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            alert('Error submitting feedback. Please try again.');
+            submitBtn.textContent = 'Submit Feedback';
+            submitBtn.disabled = false;
+        });
+    }
+
+    function showSuccessMessage() {
+        const body = document.getElementById('feedbackBody');
+        const footer = document.querySelector('#feedbackModal .modal-footer');
+        
+        body.innerHTML = `
+            <div class="success-message">
+                <div class="success-icon">✓</div>
+                <h3>Thank You!</h3>
+                <p>Your feedback has been submitted successfully.</p>
+                <p style="color: #999; font-size: 13px;">Your opinion helps us improve our service.</p>
+            </div>
+        `;
+        footer.innerHTML = `
+            <button class="modal-btn modal-btn-primary" onclick="closeFeedbackModal()">Close</button>
+        `;
+        
+        setTimeout(() => {
+            closeFeedbackModal();
+            location.reload();
+        }, 2000);
+    }
+
+    // Support Modal Functions
+    let currentSupportOrder = '';
+
+    function openContactSupport(orderNumber) {
+        currentSupportOrder = orderNumber;
+        document.getElementById('supportOrderNumber').textContent = orderNumber;
+        document.getElementById('supportModal').classList.add('active');
+    }
+
+    function closeSupportModal() {
+        document.getElementById('supportModal').classList.remove('active');
+    }
+
+    function contactEmail() {
+        const subject = `Support Request - Order ${currentSupportOrder}`;
+        const body = `Hello,\n\nI need assistance with my cancelled order ${currentSupportOrder}.\n\nPlease help me understand why it was cancelled.\n\nThank you.`;
+        window.location.href = `mailto:support@royalbeverages.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function contactPhone() {
+        window.location.href = 'tel:+911234567890';
+    }
+
+    function contactWhatsApp() {
+        const message = `Hello, I need help with my order ${currentSupportOrder}`;
+        window.open(`https://wa.me/911234567890?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    // Close modals on overlay click
+    document.getElementById('feedbackModal').addEventListener('click', function(e) {
+        if (e.target === this) closeFeedbackModal();
+    });
+
+    document.getElementById('supportModal').addEventListener('click', function(e) {
+        if (e.target === this) closeSupportModal();
+    });
+</script>
+{% endblock %}

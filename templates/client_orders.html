@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ client.organization_name }} - Orders - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    
+    <!-- Page Header -->
+    <div class="order-header">
+        <div>
+            <h1 style="color: #3a662c; margin-bottom: 5px;">{{ client.organization_name }}</h1>
+            <p style="color: #666;">Order history and details</p>
+        </div>
+        <a href="{{ url_for('clients') }}" class="btn btn-secondary">← Back to Clients</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Client Info Card -->
+    <div class="card" style="margin-bottom: 30px;">
+        <div class="card-header">
+            <h3 class="card-title">Client Information</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 10px;">
+            <div>
+                <strong>Organization:</strong> {{ client.organization_name }}
+            </div>
+            <div>
+                <strong>Contact Person:</strong> {{ client.contact_person }}
+            </div>
+            <div>
+                <strong>Email:</strong> {{ client.contact_email }}
+            </div>
+            <div>
+                <strong>Phone:</strong> {{ client.contact_phone }}
+            </div>
+            <div>
+                <strong>City:</strong> {{ client.city }}, {{ client.state }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <div class="stat-value">{{ orders|length }}</div>
+            <p class="stat-label">All time</p>
+        </div>
+        <div class="stat-card pending">
+            <h3>Pending Orders</h3>
+            <div class="stat-value">{{ pending_count }}</div>
+            <p class="stat-label">Awaiting approval</p>
+        </div>
+        <div class="stat-card success">
+            <h3>Delivered Orders</h3>
+            <div class="stat-value">{{ delivered_count }}</div>
+            <p class="stat-label">Completed</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Revenue</h3>
+            <div class="stat-value">₹{{ "%.2f"|format(total_revenue) }}</div>
+            <p class="stat-label">From this client</p>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    {% if orders %}
+    <div id="ordersList" style="margin-top: 30px;">
+        {% for order in orders %}
+        <div class="order-card {{ order.status }}">
+            
+            <!-- Order Header -->
+            <div class="order-card-header">
+                <div>
+                    <div class="order-number">{{ order.order_number }}</div>
+                    <div class="order-date">{{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}</div>
+                </div>
+                <div>
+                    <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
+                </div>
+            </div>
+
+            <!-- Order Details Grid -->
+            <div class="order-details-grid">
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Order Date</div>
+                    <div class="order-detail-value">{{ order.order_date.strftime('%d %b %Y') }}</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Items</div>
+                    <div class="order-detail-value">{{ order.order_items|length }} items</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Subtotal</div>
+                    <div class="order-detail-value">₹{{ "%.2f"|format(order.total_amount) }}</div>
+                </div>
+                <div class="order-detail-item">
+                    <div class="order-detail-label">Total Amount</div>
+                    <div class="order-detail-value" style="color: #3a662c; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="order-items-section">
+                <h4>Order Items:</h4>
+                {% for item in order.order_items %}
+                <div class="order-item">
+                    <span>{{ item.product_name }} ({{ item.quantity }} x ₹{{ "%.2f"|format(item.unit_price) }})</span>
+                    <span style="font-weight: bold;">₹{{ "%.2f"|format(item.total_price) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if order.notes %}
+            <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <strong>Client Notes:</strong> {{ order.notes }}
+            </div>
+            {% endif %}
+
+            <!-- Order Actions -->
+            <div class="order-actions">
+                {% if order.status == 'pending' %}
+                <a href="{{ url_for('approve_order', order_id=order.order_id) }}" 
+                   class="btn btn-primary btn-small"
+                   onclick="return confirm('Approve this order?')">
+                    ✓ Approve Order
+                </a>
+                <a href="{{ url_for('reject_order', order_id=order.order_id) }}" 
+                   class="btn btn-danger btn-small"
+                   onclick="return confirm('Cancel this order?')">
+                    ✗ Cancel Order
+                </a>
+                {% elif order.status == 'approved' %}
+                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='packed') }}" 
+                   class="btn btn-primary btn-small">
+                    📦 Mark as Packed
+                </a>
+                {% elif order.status == 'packed' %}
+                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='dispatched') }}" 
+                   class="btn btn-primary btn-small">
+                    🚚 Mark as Dispatched
+                </a>
+                {% elif order.status == 'dispatched' %}
+                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='delivered') }}" 
+                   class="btn btn-primary btn-small">
+                    ✓ Mark as Delivered
+                </a>
+                {% endif %}
+                
+                {% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}
+                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
+                   class="btn btn-secondary btn-small"
+                   target="_blank">
+                    📄 Download Invoice
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="margin-top: 30px;">
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
+            <p>This client hasn't placed any orders yet.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log('Client orders page loaded');
+</script>
+{% endblock %}

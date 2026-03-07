@@ -1,0 +1,462 @@
+/* ================================================
+   PRODUCT MANAGEMENT STYLES
+   ================================================ */
+
+/* Product Page Header */
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.product-header h1 {
+    color: #3a662c;
+    margin-bottom: 5px;
+}
+
+/* Search and Filter Bar */
+.search-filter-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-filter-bar input,
+.search-filter-bar select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.search-filter-bar input {
+    flex: 1;
+}
+
+.search-filter-bar input:focus,
+.search-filter-bar select:focus {
+    outline: none;
+    border-color: #3a662c;
+}
+
+/* Product Grid Layout */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Product Card/Item */
+.product-item {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-left: 5px solid #3a662c;
+    position: relative;
+}
+
+.product-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.product-item.inactive {
+    opacity: 0.6;
+    border-left-color: #999;
+}
+
+/* Product Name */
+.product-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #3a662c;
+    margin-bottom: 10px;
+}
+
+/* Product Category Badge */
+.product-category {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* Product Price */
+.product-price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #3a662c;
+    margin: 15px 0;
+}
+
+.product-price small {
+    font-size: 14px;
+    color: #999;
+    font-weight: normal;
+}
+
+/* Product Details */
+.product-details {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Product Actions */
+.product-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-small {
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+/* ================================================
+   PRODUCT FORM STYLES
+   ================================================ */
+
+.product-form {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #3a662c;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3a662c;
+    box-shadow: 0 0 0 3px rgba(58, 102, 44, 0.1);
+}
+
+.form-control:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: #3a662c;
+}
+
+/* Product Image Placeholder */
+.product-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #3a662c 0%, #2d5022 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+/* Product Stock Info */
+.stock-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.stock-info.low {
+    background-color: #fff3cd;
+    border-left: 3px solid #f39c12;
+}
+
+.stock-info.out {
+    background-color: #f8d7da;
+    border-left: 3px solid #dc3545;
+}
+
+/* Product Details Page */
+.product-detail-card {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.product-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.product-info-section {
+    margin-bottom: 25px;
+}
+
+.product-info-section h3 {
+    color: #3a662c;
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 2px solid #3a662c;
+    padding-bottom: 10px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Product List/Table View Toggle */
+.view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.view-toggle button {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.view-toggle button.active {
+    background-color: #3a662c;
+    color: white;
+    border-color: #3a662c;
+}
+
+.view-toggle button:hover {
+    background-color: #f0f0f0;
+}
+
+.view-toggle button.active:hover {
+    background-color: #2d5022;
+}
+
+/* Table View for Products */
+.product-table-view {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.product-table-view table {
+    width: 100%;
+}
+
+.product-table-view th {
+    background-color: #3a662c;
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+.product-table-view td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.product-table-view tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Form Submit Buttons */
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.form-buttons .btn {
+    flex: 1;
+    text-align: center;
+}
+
+.product-card.inactive {
+    /* Keep border and slight background change */
+    border-left-color: #999;
+    background-color: #fafafa;
+    /* DO NOT reduce opacity of entire card */
+}
+
+.product-card.inactive .product-name,
+.product-card.inactive .product-category,
+.product-card.inactive .product-price {
+    /* Slightly gray out the text only */
+    color: #999;
+}
+
+.product-card.inactive .product-status {
+    /* Keep the inactive badge visible */
+    opacity: 1;
+}
+
+/* Keep ALL buttons fully visible */
+.product-card.inactive .btn,
+.product-card.inactive button,
+.product-card.inactive a.btn {
+    opacity: 1 !important;
+    /* Ensure activate button is clearly visible */
+}
+
+.product-card.inactive .btn-success {
+    /* Make activate button stand out */
+    background-color: #27ae60;
+    color: white;
+    font-weight: 600;
+}
+
+/* Add visual indicator without reducing opacity */
+.product-card.inactive::before {
+    content: '⚠️ INACTIVE';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #e74c3c;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.product-card {
+    position: relative; /* For the ::before to work */
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-filter-bar {
+        flex-direction: column;
+    }
+    
+    .product-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+    }
+    
+    .product-form {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-item {
+        padding: 15px;
+    }
+    
+    .product-name {
+        font-size: 18px;
+    }
+    
+    .product-price {
+        font-size: 20px;
+    }
+    
+    .product-form {
+        padding: 15px;
+    }
+}

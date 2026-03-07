@@ -1,0 +1,356 @@
+/* ================================================
+   INVENTORY MANAGEMENT STYLES
+   ================================================ */
+
+/* Inventory Header */
+.inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.inventory-header h1 {
+    color: #3a662c;
+    margin-bottom: 5px;
+}
+
+/* Inventory Grid */
+.inventory-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Inventory Card */
+.inventory-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 5px solid #3a662c;
+    transition: all 0.3s;
+}
+
+.inventory-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.inventory-card.low-stock {
+    border-left-color: #f39c12;
+    background-color: #fff9e6;
+}
+
+.inventory-card.out-of-stock {
+    border-left-color: #e74c3c;
+    background-color: #ffe6e6;
+}
+
+/* Inventory Header Row */
+.inventory-header-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 200px;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+/* Product Info Section */
+.product-info-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name-inventory {
+    font-size: 18px;
+    font-weight: bold;
+    color: #3a662c;
+    margin-bottom: 5px;
+}
+
+.product-meta {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Stock Info Box */
+.stock-info-box {
+    text-align: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+}
+
+.stock-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #3a662c;
+}
+
+.stock-number.low {
+    color: #f39c12;
+}
+
+.stock-number.out {
+    color: #e74c3c;
+}
+
+.stock-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Stock Actions */
+.stock-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Quick Add Form */
+.quick-add-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.quick-add-input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #000;
+}
+
+/* Stock History Styles */
+.history-container {
+    max-width: 1000px;
+    margin: 30px auto;
+}
+
+.history-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.history-timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.history-item {
+    position: relative;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border-left: 4px solid #3a662c;
+}
+
+.history-item::before {
+    content: '';
+    position: absolute;
+    left: -28px;
+    top: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3a662c;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #3a662c;
+}
+
+.history-item.addition {
+    border-left-color: #27ae60;
+}
+
+.history-item.addition::before {
+    background: #27ae60;
+    box-shadow: 0 0 0 2px #27ae60;
+}
+
+.history-item.deduction {
+    border-left-color: #e74c3c;
+}
+
+.history-item.deduction::before {
+    background: #e74c3c;
+    box-shadow: 0 0 0 2px #e74c3c;
+}
+
+.history-item.adjustment {
+    border-left-color: #3498db;
+}
+
+.history-item.adjustment::before {
+    background: #3498db;
+    box-shadow: 0 0 0 2px #3498db;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.history-type {
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.history-date {
+    font-size: 13px;
+    color: #666;
+}
+
+.history-quantity {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.history-quantity.positive {
+    color: #27ae60;
+}
+
+.history-quantity.negative {
+    color: #e74c3c;
+}
+
+.history-reason {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.history-user {
+    font-size: 13px;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* Stock Alerts */
+.stock-alert-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.alert-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-item.warning {
+    background-color: #fff3cd;
+    border-left: 4px solid #f39c12;
+}
+
+.alert-item.danger {
+    background-color: #f8d7da;
+    border-left: 4px solid #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .inventory-header-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .inventory-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .stock-actions {
+        width: 100%;
+    }
+    
+    .stock-actions .btn {
+        flex: 1;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-name-inventory {
+        font-size: 16px;
+    }
+    
+    .stock-number {
+        font-size: 20px;
+    }
+    
+    .history-timeline {
+        padding-left: 30px;
+    }
+}

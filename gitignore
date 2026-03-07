@@ -1,0 +1,69 @@
+# ================================================
+# CORRECTED .gitignore - Won't Block Your Code!
+# Replace your current .gitignore with this
+# ================================================
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environment - DON'T commit venv
+venv/
+env/
+ENV/
+.venv/
+
+# Environment variables - DON'T commit secrets
+.env
+*.env.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database files (if you have local DB files)
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.bak
+temp/
+tmp/
+
+# Test coverage reports
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# NOTE: We are NOT ignoring:
+# - .py files (your Python code)
+# - templates/ folder
+# - static/ folder  
+# - models/ folder
+# - routes/ folder
+# - utils/ folder
+# - requirements.txt
+# - README.md
