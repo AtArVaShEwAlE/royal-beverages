@@ -5,13 +5,77 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <style>
-    .reports-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
+    /* Page Header - Minimal Professional */
+    .report-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 40px;
+        background: var(--white);
+        border: 1px solid var(--border-light);
     }
 
+    .report-header img {
+        height: 80px;
+        margin-bottom: 20px;
+        filter: none;
+    }
+
+    .report-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+
+    .report-header p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 4px 0;
+    }
+
+    /* Summary Cards - Minimal */
+    .summary-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .summary-item {
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
+        text-align: center;
+        border-left: 4px solid var(--primary-dark);
+        transition: all 0.2s;
+    }
+
+    .summary-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .summary-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary-dark);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+    }
+
+    .summary-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Chart Grid */
     .chart-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -20,128 +84,30 @@
     }
 
     .chart-card {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 28px;
     }
 
     .chart-card h3 {
-        color: #3a662c;
-        margin-bottom: 20px;
-        font-size: 18px;
-        border-bottom: 2px solid #eee;
-        padding-bottom: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-light);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .chart-card.full-width {
         grid-column: 1 / -1;
     }
 
-    .top-products-list {
-        list-style: none;
-        padding: 0;
-    }
-
-    .top-products-list li {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid #eee;
-    }
-
-    .top-products-list li:last-child {
-        border-bottom: none;
-    }
-
-    .product-rank {
-        width: 30px;
-        height: 30px;
-        background: #3a662c;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 13px;
-        margin-right: 15px;
-        flex-shrink: 0;
-    }
-
-    .product-rank.rank-1 { background: #FFD700; color: #333; }
-    .product-rank.rank-2 { background: #C0C0C0; color: #333; }
-    .product-rank.rank-3 { background: #CD7F32; color: white; }
-
-    .product-info-report {
-        flex: 1;
-    }
-
-    .product-name-report {
-        font-weight: bold;
-        color: #333;
-    }
-
-    .product-sales-report {
-        font-size: 13px;
-        color: #666;
-    }
-
-    .product-revenue-report {
-        font-weight: bold;
-        color: #3a662c;
-        font-size: 16px;
-    }
-
-    .bar-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .bar-label {
-        width: 80px;
-        font-size: 13px;
-        color: #666;
-        text-align: right;
-        flex-shrink: 0;
-    }
-
-    .bar-wrapper {
-        flex: 1;
-        background: #f0f0f0;
-        border-radius: 5px;
-        height: 25px;
-        overflow: hidden;
-    }
-
-    .bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #3a662c, #5a9e42);
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        padding-left: 8px;
-        color: white;
-        font-size: 12px;
-        font-weight: bold;
-        transition: width 1s ease;
-    }
-
-    .bar-value {
-        width: 80px;
-        font-size: 13px;
-        font-weight: bold;
-        color: #333;
-        text-align: left;
-        flex-shrink: 0;
-    }
-
+    /* Status Items - Minimal */
     .status-donut {
         display: flex;
-        gap: 20px;
+        gap: 16px;
         flex-wrap: wrap;
         justify-content: center;
         margin-top: 20px;
@@ -149,107 +115,249 @@
 
     .status-item {
         text-align: center;
-        padding: 15px 20px;
-        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid;
         min-width: 100px;
+        transition: all 0.2s;
+    }
+
+    .status-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
     }
 
     .status-item .count {
         font-size: 32px;
-        font-weight: bold;
+        font-weight: 700;
+        line-height: 1;
     }
 
     .status-item .label {
-        font-size: 13px;
-        margin-top: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        margin-top: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
-    .status-item.pending { background: #fff3cd; color: #856404; }
-    .status-item.approved { background: #d1ecf1; color: #0c5460; }
-    .status-item.packed { background: #cce5ff; color: #004085; }
-    .status-item.dispatched { background: #e2d9f3; color: #4a235a; }
-    .status-item.delivered { background: #d4edda; color: #155724; }
-    .status-item.cancelled { background: #f8d7da; color: #721c24; }
+    .status-item.pending { background: #fff3cd; color: #856404; border-color: var(--status-pending); }
+    .status-item.approved { background: #d1ecf1; color: #0c5460; border-color: var(--status-approved); }
+    .status-item.packed { background: #cce5ff; color: #004085; border-color: var(--status-packed); }
+    .status-item.dispatched { background: #e2d9f3; color: #4a235a; border-color: var(--status-dispatched); }
+    .status-item.delivered { background: #d4edda; color: #155724; border-color: var(--status-delivered); }
+    .status-item.cancelled { background: #f8d7da; color: #721c24; border-color: var(--status-cancelled); }
 
-    .date-filter {
+    /* Bar Charts - Minimal */
+    .bar-container {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        background: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         align-items: center;
-        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
     }
 
-    .date-filter label {
-        font-weight: bold;
-        color: #3a662c;
+    .bar-label {
+        width: 80px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-align: right;
+        flex-shrink: 0;
     }
 
-    .date-filter input, .date-filter select {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+    .bar-wrapper {
+        flex: 1;
+        background: #f0f0f0;
+        height: 28px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
     }
 
-    .summary-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
-        margin-bottom: 30px;
+    .bar-fill {
+        height: 100%;
+        background: var(--primary-dark);
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        transition: width 1s ease;
     }
 
-    .summary-item {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border-top: 4px solid #3a662c;
-    }
-
-    .summary-value {
-        font-size: 28px;
-        font-weight: bold;
-        color: #3a662c;
-    }
-
-    .summary-label {
+    .bar-value {
+        width: 80px;
         font-size: 13px;
-        color: #666;
-        margin-top: 5px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        text-align: left;
+        flex-shrink: 0;
     }
+
+    /* Top Products List - Minimal */
+    .top-products-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .top-products-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-light);
+        transition: background 0.2s;
+    }
+
+    .top-products-list li:hover {
+        background: #fafbfc;
+    }
+
+    .top-products-list li:last-child {
+        border-bottom: none;
+    }
+
+    .product-rank {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-dark);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        margin-right: 16px;
+        flex-shrink: 0;
+        border: 2px solid;
+    }
+
+    .product-rank.rank-1 { background: #FFD700; color: #1a1a1a; border-color: #FFD700; }
+    .product-rank.rank-2 { background: #C0C0C0; color: #1a1a1a; border-color: #C0C0C0; }
+    .product-rank.rank-3 { background: #CD7F32; color: white; border-color: #CD7F32; }
+
+    .product-info-report {
+        flex: 1;
+    }
+
+    .product-name-report {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .product-sales-report {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .product-revenue-report {
+        font-weight: 700;
+        color: var(--primary-dark);
+        font-size: 16px;
+        letter-spacing: -0.01em;
+    }
+
+    /* Inventory Table - Minimal */
+    .inventory-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--border-light);
+    }
+
+    .inventory-table thead {
+        background: #fafbfc;
+        border-bottom: 2px solid var(--border-light);
+    }
+
+    .inventory-table th {
+        padding: 14px;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .inventory-table th:nth-child(2),
+    .inventory-table th:nth-child(3),
+    .inventory-table th:nth-child(4),
+    .inventory-table th:nth-child(5) {
+        text-align: center;
+    }
+
+    .inventory-table td {
+        padding: 14px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .inventory-table tbody tr:hover {
+        background: #fafbfc;
+    }
+
+    .inventory-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* Print Styles */
     @media print {
-    .report-header {
-        background: white !important;
-        page-break-inside: avoid;
-    }
-    
-    .report-header img {
-        height: 60px;
-        margin-bottom: 10px;
-    }
-}
+        .report-header {
+            background: white !important;
+            page-break-inside: avoid;
+        }
+        
+        body {
+            background: white;
+        }
 
-/* Logo responsive */
-@media (max-width: 768px) {
-    .report-header img {
-        height: 60px;
+        .chart-card {
+            page-break-inside: avoid;
+        }
     }
-    
-    .report-header h1 {
-        font-size: 24px;
-    }
-}
 
+    /* Responsive */
     @media (max-width: 768px) {
         .chart-grid {
             grid-template-columns: 1fr;
         }
+
         .chart-card.full-width {
             grid-column: 1;
+        }
+
+        .report-header {
+            padding: 24px;
+        }
+
+        .report-header h1 {
+            font-size: 22px;
+        }
+
+        .summary-row {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 </style>
@@ -259,14 +367,11 @@
 <div class="container" style="margin-top: 30px;">
 
     <!-- Page Header -->
-    
-    <div class="report-header" style="text-align: center; margin-bottom: 40px; padding: 20px; background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%); border-radius: 10px;">
-        <img src="{{ url_for('static', filename='images/RBLOGO.svg') }}" 
-            alt="Royal Beverages Logo" 
-            style="height: 80px; margin-bottom: 15px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));">
-        <h1 style="color: #3a662c; margin-bottom: 10px; font-size: 32px;">Reports & Analytics</h1>
-        <p style="color: #666; font-size: 16px;">Royal Beverages Supply & Distribution</p>
-        <p style="color: #999; font-size: 13px; margin-top: 5px;">GSTIN: 27CUZPS1971H1ZP</p>
+    <div class="report-header">
+        <img src="{{ url_for('static', filename='images/RBLOGO.png') }}" alt="Royal Beverages Logo">
+        <h1>Reports & Analytics</h1>
+        <p>Royal Beverages Supply & Distribution</p>
+        <p style="font-size: 11px;">GSTIN: 27CUZPS1971H1ZP</p>
     </div>
 
     <!-- Flash Messages -->
@@ -298,11 +403,11 @@
         </div>
         <div class="summary-item">
             <div class="summary-value">{{ this_month_orders }}</div>
-            <div class="summary-label">Orders This Month</div>
+            <div class="summary-label">This Month Orders</div>
         </div>
         <div class="summary-item">
             <div class="summary-value">₹{{ "%.0f"|format(this_month_revenue) }}</div>
-            <div class="summary-label">Revenue This Month</div>
+            <div class="summary-label">This Month Revenue</div>
         </div>
     </div>
 
@@ -311,12 +416,12 @@
 
         <!-- Order Status Breakdown -->
         <div class="chart-card">
-            <h3>📊 Orders by Status</h3>
+            <h3>Orders by Status</h3>
             <div class="status-donut">
                 {% for status_data in order_by_status %}
                 <div class="status-item {{ status_data.status }}">
                     <div class="count">{{ status_data.count }}</div>
-                    <div class="label">{{ status_data.status|title }}</div>
+                    <div class="label">{{ status_data.status }}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -324,7 +429,7 @@
 
         <!-- Monthly Revenue Chart -->
         <div class="chart-card">
-            <h3>📈 Monthly Revenue (Last 6 Months)</h3>
+            <h3>Monthly Revenue (Last 6 Months)</h3>
             {% if monthly_revenue %}
                 {% set max_revenue = monthly_revenue|map(attribute='revenue')|max %}
                 {% for month in monthly_revenue %}
@@ -339,13 +444,15 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #999; text-align: center;">No revenue data available</p>
+                <div class="empty-state">
+                    <p>No revenue data available</p>
+                </div>
             {% endif %}
         </div>
 
         <!-- Top Selling Products -->
         <div class="chart-card">
-            <h3>🏆 Top Selling Products</h3>
+            <h3>Top Selling Products</h3>
             {% if top_products %}
             <ul class="top-products-list">
                 {% for product in top_products %}
@@ -360,20 +467,22 @@
                 {% endfor %}
             </ul>
             {% else %}
-                <p style="color: #999; text-align: center;">No sales data available</p>
+                <div class="empty-state">
+                    <p>No sales data available</p>
+                </div>
             {% endif %}
         </div>
 
         <!-- Top Clients -->
         <div class="chart-card">
-            <h3>👥 Top Clients by Revenue</h3>
+            <h3>Top Clients by Revenue</h3>
             {% if top_clients %}
                 {% set max_spent = top_clients|map(attribute='total_spent')|max %}
                 {% for client in top_clients %}
                 <div class="bar-container">
                     <div class="bar-label" style="font-size: 11px;">{{ client.organization_name[:10] }}...</div>
                     <div class="bar-wrapper">
-                        <div class="bar-fill" style="width: {{ (client.total_spent / max_spent * 100)|int if max_spent > 0 else 0 }}%; background: linear-gradient(90deg, #1a3a6c, #2a5aa0);">
+                        <div class="bar-fill" style="width: {{ (client.total_spent / max_spent * 100)|int if max_spent > 0 else 0 }}%">
                             {% if (client.total_spent / max_spent * 100)|int > 15 %}₹{{ "%.0f"|format(client.total_spent) }}{% endif %}
                         </div>
                     </div>
@@ -381,20 +490,22 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #999; text-align: center;">No client data available</p>
+                <div class="empty-state">
+                    <p>No client data available</p>
+                </div>
             {% endif %}
         </div>
 
         <!-- Monthly Orders Chart - Full Width -->
         <div class="chart-card full-width">
-            <h3>📦 Monthly Orders (Last 6 Months)</h3>
+            <h3>Monthly Orders (Last 6 Months)</h3>
             {% if monthly_orders %}
                 {% set max_orders = monthly_orders|map(attribute='order_count')|max %}
                 {% for month in monthly_orders %}
                 <div class="bar-container">
                     <div class="bar-label">{{ month.month_name }}</div>
                     <div class="bar-wrapper">
-                        <div class="bar-fill" style="width: {{ (month.order_count / max_orders * 100)|int if max_orders > 0 else 0 }}%; background: linear-gradient(90deg, #e67e22, #f39c12);">
+                        <div class="bar-fill" style="width: {{ (month.order_count / max_orders * 100)|int if max_orders > 0 else 0 }}%">
                             {% if (month.order_count / max_orders * 100)|int > 10 %}{{ month.order_count }} orders{% endif %}
                         </div>
                     </div>
@@ -402,41 +513,43 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p style="color: #999; text-align: center;">No order data available</p>
+                <div class="empty-state">
+                    <p>No order data available</p>
+                </div>
             {% endif %}
         </div>
 
         <!-- Low Stock Alert -->
         <div class="chart-card full-width">
-            <h3>⚠️ Inventory Alerts</h3>
+            <h3>Inventory Alerts</h3>
             {% if low_stock_products %}
-            <table style="width: 100%; border-collapse: collapse;">
+            <table class="inventory-table">
                 <thead>
-                    <tr style="background: #f0f0f0;">
-                        <th style="padding: 10px; text-align: left;">Product</th>
-                        <th style="padding: 10px; text-align: center;">Current Stock</th>
-                        <th style="padding: 10px; text-align: center;">Min. Level</th>
-                        <th style="padding: 10px; text-align: center;">Status</th>
-                        <th style="padding: 10px; text-align: center;">Action</th>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current Stock</th>
+                        <th>Min. Level</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for product in low_stock_products %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px;">{{ product.product_name }}</td>
-                        <td style="padding: 10px; text-align: center; font-weight: bold; 
+                    <tr>
+                        <td>{{ product.product_name }}</td>
+                        <td style="text-align: center; font-weight: 600; 
                             color: {{ '#e74c3c' if product.quantity_in_stock == 0 else '#f39c12' }};">
                             {{ product.quantity_in_stock }}
                         </td>
-                        <td style="padding: 10px; text-align: center;">{{ product.minimum_stock_level }}</td>
-                        <td style="padding: 10px; text-align: center;">
+                        <td style="text-align: center;">{{ product.minimum_stock_level }}</td>
+                        <td style="text-align: center;">
                             {% if product.quantity_in_stock == 0 %}
                             <span class="status-badge cancelled">OUT OF STOCK</span>
                             {% else %}
                             <span class="status-badge pending">LOW STOCK</span>
                             {% endif %}
                         </td>
-                        <td style="padding: 10px; text-align: center;">
+                        <td style="text-align: center;">
                             <a href="{{ url_for('inventory') }}" class="btn btn-primary btn-small">Restock</a>
                         </td>
                     </tr>
@@ -444,8 +557,8 @@
                 </tbody>
             </table>
             {% else %}
-            <div style="text-align: center; padding: 20px; color: #27ae60;">
-                <div style="font-size: 36px;">✅</div>
+            <div class="empty-state">
+                <div class="icon">✓</div>
                 <p>All products are well stocked!</p>
             </div>
             {% endif %}

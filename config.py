@@ -10,12 +10,25 @@ class Config:
     # Flask Secret Key (for sessions and security)
     SECRET_KEY = os.getenv('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # MySQL Database Configuration
-    MYSQL_HOST = os.getenv('DB_HOST', 'localhost')
-    MYSQL_USER = os.getenv('DB_USER', 'root')
-    MYSQL_PASSWORD = os.getenv('DB_PASSWORD', '')
-    MYSQL_DB = os.getenv('DB_NAME', 'royal_beverages_db')
-    MYSQL_CURSORCLASS = 'DictCursor'
+    # Detect database type based on environment
+    USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+    
+    if USE_POSTGRES:
+        # PostgreSQL Configuration (for PythonAnywhere)
+        DB_TYPE = 'postgresql'
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@"
+            f"{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+        )
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
+    else:
+        # MySQL Configuration (for local development)
+        DB_TYPE = 'mysql'
+        MYSQL_HOST = os.getenv('DB_HOST', 'localhost')
+        MYSQL_USER = os.getenv('DB_USER', 'root')
+        MYSQL_PASSWORD = os.getenv('DB_PASSWORD', '')
+        MYSQL_DB = os.getenv('DB_NAME', 'royal_beverages_db')
+        MYSQL_CURSORCLASS = 'DictCursor'
     
     # Session Configuration
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour in seconds

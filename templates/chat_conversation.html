@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.first_name }} - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 30px auto;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Chat Header */
+    .chat-header {
+        background: #ffffff;
+        border: 1px solid #e1e8ed;
+        border-bottom: 2px solid #e1e8ed;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .chat-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .chat-user-info h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 2px;
+    }
+
+    .chat-user-org {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .back-btn {
+        margin-left: auto;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #e1e8ed;
+        text-decoration: none;
+        color: #2c3e50;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        background: #ffffff;
+        border-color: #1a1a1a;
+    }
+
+    /* Messages Area */
+    .messages-area {
+        flex: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+        border-left: 1px solid #e1e8ed;
+        border-right: 1px solid #e1e8ed;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* Message Bubble */
+    .message {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        max-width: 70%;
+    }
+
+    .message.sent {
+        margin-left: auto;
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #7f8c8d;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .message.sent .message-avatar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .message-bubble {
+        background: #ffffff;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid #e1e8ed;
+    }
+
+    .message.sent .message-bubble {
+        background: #1a1a1a;
+        color: #ffffff;
+        border-color: #1a1a1a;
+    }
+
+    .message-text {
+        font-size: 14px;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #7f8c8d;
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .message.sent .message-time {
+        color: rgba(255,255,255,0.7);
+    }
+
+    /* Input Area */
+    .input-area {
+        background: #ffffff;
+        border: 1px solid #e1e8ed;
+        border-top: 2px solid #e1e8ed;
+        padding: 20px;
+    }
+
+    .input-form {
+        display: flex;
+        gap: 12px;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e1e8ed;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: #1a1a1a;
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    .send-btn {
+        padding: 12px 24px;
+        background: #1a1a1a;
+        color: white;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .send-btn:hover {
+        background: #000000;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Empty State */
+    .empty-chat {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #7f8c8d;
+    }
+
+    .empty-chat .icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-chat p {
+        font-size: 14px;
+    }
+
+    /* Scrollbar */
+    .messages-area::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messages-area::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb {
+        background: #e1e8ed;
+        border-radius: 3px;
+    }
+
+    .messages-area::-webkit-scrollbar-thumb:hover {
+        background: #7f8c8d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <div class="chat-avatar">
+            {{ other_user.first_name[0] }}{{ other_user.last_name[0] if other_user.last_name else '' }}
+        </div>
+        <div class="chat-user-info">
+            <h2>{{ other_user.first_name }} {{ other_user.last_name }}</h2>
+            <div class="chat-user-org">
+                {{ other_user.organization_name if other_user.organization_name else 'Support Team' }}
+            </div>
+        </div>
+        <a href="{{ url_for('chat_list') }}" class="back-btn">← Back</a>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="messages-area" id="messagesArea">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="message {% if message.sender_id == session.user_id %}sent{% endif %}">
+                <div class="message-avatar">
+                    {{ message.sender_first_name[0] }}{{ message.sender_last_name[0] if message.sender_last_name else '' }}
+                </div>
+                <div>
+                    <div class="message-bubble">
+                        <div class="message-text">{{ message.message_text }}</div>
+                    </div>
+                    <div class="message-time">
+                        {{ message.created_at.strftime('%d %b %Y %I:%M %p') }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-chat">
+            <div class="icon">💬</div>
+            <p>No messages yet. Start the conversation!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+        <form method="POST" action="{{ url_for('send_message', user_id=other_user.user_id) }}" class="input-form">
+            <textarea 
+                name="message" 
+                class="message-input" 
+                placeholder="Type your message..."
+                required
+                rows="1"
+                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"
+            ></textarea>
+            <button type="submit" class="send-btn">Send</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-scroll to bottom on load
+    const messagesArea = document.getElementById('messagesArea');
+    if (messagesArea) {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // Auto-resize textarea
+    const textarea = document.querySelector('.message-input');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    }
+
+    // Auto-refresh messages every 5 seconds (simple polling)
+    setInterval(() => {
+        location.reload();
+    }, 5000);
+</script>
+{% endblock %}

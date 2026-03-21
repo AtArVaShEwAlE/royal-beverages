@@ -10,7 +10,7 @@
 <div class="container" style="margin-top: 30px;">
     
     <div class="dashboard-header">
-        <h1>Welcome, {{ session.first_name }}! 👋</h1>
+        <h1>Welcome, {{ session.first_name }}!</h1>
         <p>Client Dashboard - Royal Beverages Supply & Distribution</p>
     </div>
 
@@ -45,16 +45,16 @@
         </div>
         <div class="quick-actions-grid">
             <a href="{{ url_for('place_order') }}" class="action-btn">
-                🛒 Place New Order
+                 Place New Order
             </a>
             <a href="{{ url_for('my_orders') }}" class="action-btn">
-                📦 View My Orders
+                 View My Orders
             </a>
             <a href="{{ url_for('products') }}" class="action-btn">
-                📋 Browse Products
+                 Browse Products
             </a>
             <a href="{{ url_for('profile') }}" class="action-btn">
-                👤 Manage Profile
+                 Manage Profile
             </a>
         </div>
     </div>

@@ -10,95 +10,147 @@
         padding: 20px;
     }
 
+    /* Profile Header - Minimal Design */
     .profile-header {
-        background: linear-gradient(135deg, #3a662c, #5a9e42);
-        color: white;
-        padding: 30px;
-        border-radius: 10px 10px 0 0;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 40px;
         text-align: center;
+        margin-bottom: 0;
+        border-bottom: 2px solid var(--border-light);
     }
 
     .profile-avatar {
         width: 80px;
         height: 80px;
-        background: white;
-        color: #3a662c;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 32px;
-        font-weight: bold;
-        margin-bottom: 15px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
     }
 
+    .profile-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 8px;
+    }
+
+    .profile-header p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    /* Tabs - Minimal Industrial */
     .tabs {
         display: flex;
-        background: #f5f5f5;
-        border-radius: 0;
+        background: #fafbfc;
+        border-left: 1px solid var(--border-light);
+        border-right: 1px solid var(--border-light);
     }
 
     .tab {
         flex: 1;
-        padding: 15px;
+        padding: 16px;
         text-align: center;
         cursor: pointer;
         border: none;
         background: transparent;
         font-weight: 600;
-        color: #666;
-        transition: all 0.3s;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+        border-bottom: 2px solid transparent;
+    }
+
+    .tab:hover {
+        color: var(--primary-dark);
+        background: rgba(0,0,0,0.02);
     }
 
     .tab.active {
-        background: white;
-        color: #3a662c;
-        border-bottom: 3px solid #3a662c;
+        background: var(--white);
+        color: var(--primary-dark);
+        border-bottom-color: var(--accent-green);
     }
 
+    /* Tab Content */
     .tab-content {
         display: none;
-        padding: 30px;
-        background: white;
-        border-radius: 0 0 10px 10px;
+        padding: 40px;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        border-top: none;
     }
 
     .tab-content.active {
         display: block;
     }
 
+    .tab-content h2 {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Forms - Minimal */
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .form-group label {
         display: block;
         margin-bottom: 8px;
+        font-size: 11px;
         font-weight: 600;
-        color: #333;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .form-group input,
     .form-group textarea {
         width: 100%;
-        padding: 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
+        padding: 12px 16px;
+        border: 1px solid var(--border-light);
         font-size: 14px;
-        transition: border-color 0.2s;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+        color: var(--text-primary);
+        background: var(--white);
     }
 
     .form-group input:focus,
     .form-group textarea:focus {
         outline: none;
-        border-color: #3a662c;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
     }
 
     .form-group input:read-only {
-        background: #f5f5f5;
+        background: #fafbfc;
         cursor: not-allowed;
+        color: var(--text-secondary);
     }
 
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* Info Grid */
     .info-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -106,84 +158,135 @@
     }
 
     .info-item {
-        padding: 15px;
-        background: #f9f9f9;
-        border-radius: 8px;
+        padding: 20px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
     }
 
     .info-label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
     }
 
     .info-value {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
-        color: #333;
+        color: var(--primary-dark);
     }
 
+    /* Badge - Minimal */
     .badge {
         display: inline-block;
-        padding: 5px 12px;
-        border-radius: 15px;
-        font-size: 12px;
-        font-weight: 600;
+        padding: 6px 14px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: 1px solid;
     }
 
     .badge-admin {
-        background: #3a662c;
-        color: white;
+        background: var(--primary-dark);
+        color: var(--white);
+        border-color: var(--primary-dark);
     }
 
     .badge-client {
         background: #3498db;
-        color: white;
+        color: var(--white);
+        border-color: #3498db;
     }
 
-    /* Password Requirements */
+    /* Password Requirements - Minimal */
     .password-requirements {
-        margin-top: 10px;
-        padding: 15px;
-        background: #f9f9f9;
-        border-radius: 8px;
-        font-size: 13px;
+        margin-top: 16px;
+        padding: 20px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
     }
 
     .password-requirements h4 {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        color: #333;
+        margin: 0 0 16px 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .requirement {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 5px 0;
-        color: #666;
+        gap: 10px;
+        padding: 8px 0;
+        color: var(--text-secondary);
+        font-size: 13px;
     }
 
     .requirement.met {
-        color: #27ae60;
+        color: var(--accent-green);
     }
 
     .requirement .check {
         width: 20px;
         font-weight: bold;
+        font-size: 14px;
     }
 
     .requirement.met .check {
-        color: #27ae60;
+        color: var(--accent-green);
     }
 
+    /* Password Match Indicator */
+    #passwordMatch {
+        margin-top: 8px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* Buttons */
+    .btn {
+        margin-top: 24px;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
+        .profile-container {
+            padding: 10px;
+        }
+
+        .profile-header {
+            padding: 30px 20px;
+        }
+
+        .tab-content {
+            padding: 24px;
+        }
+
         .info-grid {
             grid-template-columns: 1fr;
         }
         
         .tabs {
             flex-direction: column;
+        }
+
+        .tab {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--accent-green);
+            border-right: 4px solid var(--accent-green);
         }
     }
 </style>
@@ -200,7 +303,7 @@
         <h1>{{ user.first_name }} {{ user.last_name }}</h1>
         <p>{{ user.email }}</p>
         <span class="badge badge-{{ 'admin' if user.role in ['admin', 'staff'] else 'client' }}">
-            {{ user.role|upper }}
+            {{ user.role }}
         </span>
     </div>
 
@@ -280,7 +383,7 @@
                     <input type="password" name="new_password" id="newPassword" required>
                     
                     <div class="password-requirements">
-                        <h4>Password Requirements:</h4>
+                        <h4>Password Requirements</h4>
                         <div class="requirement" id="req-length">
                             <span class="check">○</span>
                             <span>At least 8 characters</span>
@@ -307,7 +410,7 @@
                 <div class="form-group">
                     <label>Confirm New Password *</label>
                     <input type="password" name="confirm_password" id="confirmPassword" required>
-                    <div id="passwordMatch" style="margin-top: 5px; font-size: 13px;"></div>
+                    <div id="passwordMatch"></div>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="changePasswordBtn" disabled>
@@ -433,7 +536,7 @@
         evt.currentTarget.classList.add('active');
     }
 
-    // Password validation for change password
+    // Password validation
     const newPasswordInput = document.getElementById('newPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
     const changePasswordBtn = document.getElementById('changePasswordBtn');
@@ -456,7 +559,6 @@
         const confirmPassword = confirmPasswordInput.value;
         let allMet = true;
 
-        // Check each requirement
         for (let key in requirements) {
             const req = requirements[key];
             const met = req.regex.test(password);
@@ -471,7 +573,6 @@
             }
         }
 
-        // Check password match
         const passwordMatch = document.getElementById('passwordMatch');
         if (confirmPassword) {
             if (password === confirmPassword) {
@@ -486,7 +587,6 @@
             passwordMatch.textContent = '';
         }
 
-        // Enable/disable button
         changePasswordBtn.disabled = !(allMet && password === confirmPassword && confirmPassword.length > 0);
     }
 </script>

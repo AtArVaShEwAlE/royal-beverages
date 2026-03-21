@@ -3,138 +3,302 @@
 {% block title %}Place Order - Royal Beverages{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/products.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <style>
+    /* Page Container */
     .order-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 30px auto;
+        padding: 0 20px;
     }
 
+    /* Page Header */
     .order-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
     }
 
+    .order-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .order-header p {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Two Column Layout */
+    .two-column-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 24px;
+    }
+
+    /* Product Selection Card */
     .product-selection {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
     }
 
+    .product-selection h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    /* Product List */
     .product-list {
         display: grid;
-        gap: 15px;
+        gap: 12px;
     }
 
+    /* Product Row */
     .product-row {
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr 100px;
-        gap: 15px;
+        grid-template-columns: 80px 2fr 120px 100px 100px 40px;
+        gap: 16px;
         align-items: center;
-        padding: 15px;
-        background: #f9f9f9;
-        border-radius: 8px;
-        border-left: 4px solid #3a662c;
+        padding: 16px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
+        border-left: 4px solid #27ae60;
+        transition: all 0.2s;
     }
 
+    .product-row:hover {
+        background: #f8f9fa;
+        border-left-color: var(--primary-dark);
+    }
+
+    /* Product Image Thumbnail */
+    .product-image-thumb {
+        width: 80px;
+        height: 80px;
+        overflow: hidden;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    .product-image-thumb img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Product Info */
     .product-info h4 {
-        margin: 0;
-        color: #3a662c;
-        font-size: 16px;
+        margin: 0 0 6px 0;
+        color: var(--primary-dark);
+        font-size: 15px;
+        font-weight: 600;
     }
 
     .product-info p {
-        margin: 5px 0 0 0;
-        color: #666;
-        font-size: 13px;
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
     }
 
+    /* Product Price */
     .product-price {
-        font-weight: bold;
-        color: #3a662c;
+        font-weight: 700;
+        color: #27ae60;
         font-size: 18px;
     }
 
+    /* Quantity Input */
     .quantity-input {
         width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        padding: 10px;
+        border: 1px solid var(--border-light);
         text-align: center;
         font-size: 16px;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
     }
 
+    .quantity-input:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    /* Product Total */
     .product-total {
-        font-weight: bold;
-        color: #333;
+        font-weight: 700;
+        color: var(--primary-dark);
         font-size: 16px;
         text-align: right;
     }
 
+    /* Checkbox */
+    .product-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #27ae60;
+    }
+
+    /* Notes Section */
+    .notes-section {
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 20px;
+        margin-top: 16px;
+    }
+
+    .notes-section label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .notes-section textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-light);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        resize: vertical;
+    }
+
+    .notes-section textarea:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    /* Order Summary */
     .order-summary {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
         position: sticky;
         top: 20px;
     }
 
     .order-summary h3 {
-        color: #3a662c;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-dark);
         margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #3a662c;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--primary-dark);
     }
 
+    /* Summary Row */
     .summary-row {
         display: flex;
         justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #eee;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
     }
 
     .summary-row.total {
-        border-top: 2px solid #3a662c;
-        border-bottom: none;
+        border-top: 2px solid var(--primary-dark);
         font-size: 20px;
-        font-weight: bold;
-        color: #3a662c;
-        padding-top: 15px;
-        margin-top: 10px;
+        font-weight: 700;
+        color: var(--primary-dark);
+        padding-top: 16px;
+        margin-top: 12px;
     }
 
-    .two-column-layout {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 30px;
-    }
-
-    .notes-section {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
+    /* Summary Info Box */
+    .summary-info-box {
         margin-top: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 16px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
     }
 
+    .summary-info-box p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .summary-info-box strong {
+        color: var(--primary-dark);
+    }
+
+    /* Submit Button */
+    .submit-order-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 16px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .submit-order-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .submit-disclaimer {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: center;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    /* Responsive */
     @media (max-width: 968px) {
         .two-column-layout {
             grid-template-columns: 1fr;
         }
         
         .product-row {
-            grid-template-columns: 1fr;
-            gap: 10px;
+            grid-template-columns: 60px 1fr auto;
+            gap: 12px;
+        }
+        
+        .product-image-thumb {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .product-price,
+        .product-total {
+            grid-column: 2 / 3;
         }
         
         .order-summary {
             position: relative;
+            top: 0;
         }
     }
 </style>
@@ -146,19 +310,17 @@
     <!-- Page Header -->
     <div class="order-header">
         <div>
-            <h1 style="color: #3a662c; margin-bottom: 5px;">Place New Order</h1>
-            <p style="color: #666;">Select products and quantities for your order</p>
+            <h1>Place New Order</h1>
+            <p>Select products and quantities for your order</p>
         </div>
-        <a href="{{ url_for('client_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        <a href="{{ url_for('client_dashboard') }}" class="btn btn-secondary">← Back</a>
     </div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
+                <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -170,12 +332,20 @@
             <!-- Left Column - Product Selection -->
             <div>
                 <div class="product-selection">
-                    <h3 style="color: #3a662c; margin-bottom: 20px;">Available Products</h3>
+                    <h3>Available Products</h3>
                     
                     {% if products %}
                     <div class="product-list">
                         {% for product in products %}
                         <div class="product-row">
+
+                            <div class="product-image-thumb">
+                                {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '')|replace('/', '') ~ '.png' %}
+                                <img src="{{ url_for('static', filename='images/products/' ~ image_name) }}" 
+                                    alt="{{ product.product_name }}"
+                                    onerror="this.src='{{ url_for('static', filename='images/products/placeholder.png') }}'">
+                            </div>
+
                             <div class="product-info">
                                 <h4>{{ product.product_name }}</h4>
                                 <p>📦 {{ product.packaging_size }} | {{ product.category_name }}</p>
@@ -198,6 +368,7 @@
                                     data-product-id="{{ product.product_id }}"
                                     data-product-name="{{ product.product_name }}"
                                     onchange="calculateTotal()"
+                                    placeholder="Qty"
                                 >
                             </div>
                             
@@ -209,7 +380,7 @@
                                 <input 
                                     type="checkbox" 
                                     id="select_{{ product.product_id }}"
-                                    style="width: 20px; height: 20px; cursor: pointer;"
+                                    class="product-checkbox"
                                     onchange="toggleProduct({{ product.product_id }})"
                                 >
                             </div>
@@ -217,19 +388,19 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p style="text-align: center; color: #999; padding: 40px;">No products available at the moment.</p>
+                    <div class="empty-state">
+                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📦</div>
+                        <p>No products available at the moment.</p>
+                    </div>
                     {% endif %}
                 </div>
 
                 <!-- Notes Section -->
                 <div class="notes-section">
-                    <label for="notes" style="display: block; margin-bottom: 10px; color: #3a662c; font-weight: 600;">
-                        Order Notes (Optional)
-                    </label>
+                    <label for="notes">Order Notes (Optional)</label>
                     <textarea 
                         id="notes" 
                         name="notes"
-                        class="form-control"
                         rows="3"
                         placeholder="Add any special instructions or notes for this order..."
                     ></textarea>
@@ -242,22 +413,22 @@
                     <h3>Order Summary</h3>
                     
                     <div class="summary-row">
-                        <span>Subtotal:</span>
+                        <span>Subtotal</span>
                         <span id="subtotal">₹0.00</span>
                     </div>
                     
                     <div class="summary-row">
-                        <span>GST (5%):</span>
+                        <span>GST (5%)</span>
                         <span id="gst">₹0.00</span>
                     </div>
                     
                     <div class="summary-row total">
-                        <span>Total Amount:</span>
+                        <span>Total Amount</span>
                         <span id="grandTotal">₹0.00</span>
                     </div>
 
-                    <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
-                        <p style="margin: 0; font-size: 13px; color: #666;">
+                    <div class="summary-info-box">
+                        <p>
                             <strong>Selected Items:</strong> <span id="itemCount">0</span><br>
                             <strong>Total Quantity:</strong> <span id="totalQty">0</span>
                         </p>
@@ -269,15 +440,14 @@
 
                     <button 
                         type="submit" 
-                        class="btn btn-primary" 
-                        style="width: 100%; margin-top: 20px; padding: 15px; font-size: 16px;"
+                        class="btn btn-primary submit-order-btn"
                         id="submitBtn"
                         disabled
                     >
                         🛒 Place Order
                     </button>
 
-                    <p style="margin-top: 15px; font-size: 12px; color: #999; text-align: center;">
+                    <p class="submit-disclaimer">
                         Your order will be sent for admin approval
                     </p>
                 </div>
@@ -311,7 +481,6 @@
         let itemCount = 0;
         let totalQty = 0;
 
-        // Loop through all quantity inputs
         document.querySelectorAll('.quantity-input').forEach(input => {
             const qty = parseInt(input.value) || 0;
             const price = parseFloat(input.dataset.price);
@@ -328,13 +497,9 @@
                 subtotal += itemTotal;
                 totalGst += itemGst;
 
-                // Update product row total
                 document.getElementById(`total_${productId}`).textContent = `₹${itemTotal.toFixed(2)}`;
-                
-                // Check the checkbox
                 document.getElementById(`select_${productId}`).checked = true;
             } else {
-                // Reset if quantity is 0
                 document.getElementById(`total_${productId}`).textContent = '₹0.00';
                 document.getElementById(`select_${productId}`).checked = false;
             }
@@ -342,32 +507,20 @@
 
         const grandTotal = subtotal + totalGst;
 
-        // Update summary
         document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
         document.getElementById('gst').textContent = `₹${totalGst.toFixed(2)}`;
         document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
         document.getElementById('itemCount').textContent = itemCount;
         document.getElementById('totalQty').textContent = totalQty;
 
-        // Update hidden inputs
         document.getElementById('totalAmountInput').value = subtotal.toFixed(2);
         document.getElementById('gstAmountInput').value = totalGst.toFixed(2);
         document.getElementById('grandTotalInput').value = grandTotal.toFixed(2);
 
-        // Enable/disable submit button
         const submitBtn = document.getElementById('submitBtn');
-        if (itemCount > 0) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            submitBtn.style.cursor = 'pointer';
-        } else {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.5';
-            submitBtn.style.cursor = 'not-allowed';
-        }
+        submitBtn.disabled = itemCount === 0;
     }
 
-    // Form validation
     document.getElementById('orderForm').addEventListener('submit', function(e) {
         const itemCount = parseInt(document.getElementById('itemCount').textContent);
         
@@ -377,10 +530,85 @@
             return false;
         }
         
-        return confirm(`Place order for ${itemCount} item(s) with total amount ₹${document.getElementById('grandTotal').textContent}?`);
+        return confirm(`Place order for ${itemCount} item(s) with total amount ${document.getElementById('grandTotal').textContent}?`);
     });
 
-    // Initialize on page load
+    {% if repeat_items %}
+    document.addEventListener('DOMContentLoaded', function() {
+        const repeatItems = {{ repeat_items | tojson }};
+        
+        let itemsLoaded = 0;
+        let itemsNotFound = 0;
+        
+        for (const [productId, quantity] of Object.entries(repeatItems)) {
+            const qtyInput = document.getElementById(`qty_${productId}`);
+            
+            if (qtyInput) {
+                qtyInput.value = quantity;
+                itemsLoaded++;
+                
+                const productRow = qtyInput.closest('.product-row');
+                if (productRow) {
+                    productRow.style.backgroundColor = '#e8f5e9';
+                    productRow.style.transition = 'background-color 2s ease';
+                    setTimeout(() => { productRow.style.backgroundColor = ''; }, 3000);
+                }
+            } else {
+                itemsNotFound++;
+            }
+        }
+        
+        calculateTotal();
+        
+        if (itemsLoaded > 0) {
+            showRepeatOrderNotification(itemsLoaded, itemsNotFound);
+        }
+    });
+
+    function showRepeatOrderNotification(loaded, notFound) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed; top: 80px; right: 20px; z-index: 1000; max-width: 350px;
+            padding: 15px 20px; background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        let message = `<div style="display: flex; align-items: center; gap: 10px;">`;
+        message += `<div style="font-size: 24px;">🔄</div><div>`;
+        message += `<strong style="font-size: 15px;">Order Repeated!</strong><br>`;
+        message += `<span style="font-size: 13px;">${loaded} item(s) added to your order.</span>`;
+        if (notFound > 0) {
+            message += `<br><small style="font-size: 12px; opacity: 0.9;">${notFound} item(s) no longer available.</small>`;
+        }
+        message += `</div></div>`;
+        
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+
+    if (!document.getElementById('repeat-order-styles')) {
+        const style = document.createElement('style');
+        style.id = 'repeat-order-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    {% endif %}
+
     calculateTotal();
 </script>
 {% endblock %}

@@ -3,8 +3,168 @@
 {% block title %}Manage Orders - Royal Beverages{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .order-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .order-header p {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Filter Bar */
+    .order-filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        background: var(--white);
+        padding: 20px;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-filter-bar input,
+    .order-filter-bar select {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border-light);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .order-filter-bar input:focus,
+    .order-filter-bar select:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    /* Order Cards */
+    .order-card {
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .order-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .order-card.pending { border-left-color: var(--status-pending); }
+    .order-card.approved { border-left-color: var(--status-approved); }
+    .order-card.packed { border-left-color: var(--status-packed); }
+    .order-card.dispatched { border-left-color: var(--status-dispatched); }
+    .order-card.delivered { border-left-color: var(--status-delivered); }
+    .order-card.cancelled { border-left-color: var(--status-cancelled); }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .order-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .order-date {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .order-detail-item {
+        padding: 12px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-detail-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+    }
+
+    .order-detail-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .order-items-section {
+        margin: 16px 0;
+        padding: 16px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-items-section h4 {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-light);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,8 +173,8 @@
     <!-- Page Header -->
     <div class="order-header">
         <div>
-            <h1 style="color: #3a662c; margin-bottom: 5px;">Order Management</h1>
-            <p style="color: #666;">View and manage all customer orders</p>
+            <h1>Order Management</h1>
+            <p>View and manage all customer orders</p>
         </div>
     </div>
 
@@ -22,9 +182,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
+                <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -36,15 +194,15 @@
             <div class="stat-value">{{ orders|length }}</div>
             <p class="stat-label">All orders</p>
         </div>
-        <div class="stat-card pending">
+        <div class="stat-card" style="border-left: 4px solid var(--status-pending);">
             <h3>Pending Approval</h3>
-            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-value" style="color: var(--status-pending);">{{ pending_count }}</div>
             <p class="stat-label">Awaiting action</p>
         </div>
-        <div class="stat-card success">
+        <div class="stat-card" style="border-left: 4px solid var(--status-delivered);">
             <h3>Delivered</h3>
-            <div class="stat-value">{{ delivered_count }}</div>
-            <p class="stat-label">Successfully completed</p>
+            <div class="stat-value" style="color: var(--status-delivered);">{{ delivered_count }}</div>
+            <p class="stat-label">Completed</p>
         </div>
         <div class="stat-card">
             <h3>Total Revenue</h3>
@@ -58,7 +216,7 @@
         <input 
             type="text" 
             id="searchInput" 
-            placeholder="🔍 Search by order number or client..."
+            placeholder="Search by order number or client..."
             onkeyup="filterOrders()"
         >
         <select id="statusFilter" onchange="filterOrders()">
@@ -108,29 +266,34 @@
                 </div>
                 <div class="order-detail-item">
                     <div class="order-detail-label">Grand Total</div>
-                    <div class="order-detail-value" style="color: #3a662c; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
+                    <div class="order-detail-value" style="color: #27ae60; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
                 </div>
             </div>
 
             <!-- Order Items -->
             <div class="order-items-section">
-                <h4>Order Items:</h4>
+                <h4>Order Items</h4>
                 {% for item in order.order_items %}
                 <div class="order-item">
                     <span>{{ item.product_name }} ({{ item.quantity }} x ₹{{ "%.2f"|format(item.unit_price) }})</span>
-                    <span style="font-weight: bold;">₹{{ "%.2f"|format(item.total_price) }}</span>
+                    <span style="font-weight: 600;">₹{{ "%.2f"|format(item.total_price) }}</span>
                 </div>
                 {% endfor %}
             </div>
 
             {% if order.notes %}
-            <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <strong>Notes:</strong> {{ order.notes }}
+            <div style="background: #fff3cd; padding: 12px; border: 1px solid #ffc107; margin-top: 12px; font-size: 13px;">
+                <strong style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Notes:</strong> {{ order.notes }}
             </div>
             {% endif %}
 
             <!-- Order Actions -->
             <div class="order-actions">
+                <!-- NEW: View Details Button -->
+                <a href="{{ url_for('order_detail', order_id=order.order_id) }}" class="btn btn-primary btn-small">
+                    📄 View Details
+                </a>
+                
                 {% if order.status == 'pending' %}
                 <a href="{{ url_for('approve_order', order_id=order.order_id) }}" 
                    class="btn btn-primary btn-small"
@@ -163,13 +326,9 @@
                 <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
                    class="btn btn-secondary btn-small"
                    target="_blank">
-                    📄 Download Invoice
+                    📥 Download Invoice
                 </a>
                 {% endif %}
-                
-                <a href="#" class="btn btn-secondary btn-small" onclick="alert('Order details coming soon!')">
-                    👁️ View Details
-                </a>
             </div>
 
         </div>
@@ -177,9 +336,9 @@
     </div>
     {% else %}
     <div class="card">
-        <div style="text-align: center; padding: 40px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
-            <p>No orders yet. Orders will appear here when clients place them.</p>
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📦</div>
+            <p style="font-size: 16px;">No orders yet. Orders will appear here when clients place them.</p>
         </div>
     </div>
     {% endif %}
@@ -202,12 +361,10 @@
             
             let showCard = true;
             
-            // Search filter
             if (searchInput && !orderNumber.includes(searchInput) && !client.includes(searchInput)) {
                 showCard = false;
             }
             
-            // Status filter
             if (statusFilter && status !== statusFilter) {
                 showCard = false;
             }

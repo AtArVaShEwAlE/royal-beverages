@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Products - Royal Beverages{% endblock %}
+{% block title %}Browse Products - Royal Beverages{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
@@ -72,16 +72,12 @@
         transition: all 0.2s;
         border-left: 4px solid #27ae60;
         overflow: hidden;
+        cursor: pointer;
     }
 
     .product-item:hover {
         box-shadow: var(--shadow-md);
         transform: translateY(-2px);
-    }
-
-    .product-item.inactive {
-        opacity: 0.6;
-        border-left-color: var(--text-secondary);
     }
 
     /* Product Image */
@@ -147,23 +143,27 @@
         font-size: 24px;
         font-weight: 700;
         color: #27ae60;
-        margin-bottom: 12px;
-    }
-
-    .product-status {
         margin-bottom: 16px;
     }
 
-    .product-actions {
-        display: flex;
-        gap: 8px;
-        padding-top: 16px;
-        border-top: 1px solid var(--border-light);
+    .btn-view-details {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--primary-dark);
+        color: var(--white);
+        border: none;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
     }
 
-    .product-actions .btn {
-        flex: 1;
-        text-align: center;
+    .btn-view-details:hover {
+        background: #000000;
+        color: var(--white);
+        transform: translateY(-1px);
     }
 
     /* Empty State */
@@ -203,10 +203,10 @@
     <!-- Page Header -->
     <div class="product-header">
         <div>
-            <h1>Product Management</h1>
-            <p>Manage your tea and coffee premix products</p>
+            <h1>Browse Our Products</h1>
+            <p>Explore our premium tea and coffee premix collection</p>
         </div>
-        <a href="{{ url_for('add_product') }}" class="btn btn-primary">+ Add Product</a>
+        <a href="{{ url_for('place_order') }}" class="btn btn-primary">🛒 Place Order</a>
     </div>
 
     <!-- Flash Messages -->
@@ -220,17 +220,12 @@
 
     <!-- Search and Filter Bar -->
     <div class="search-filter-bar">
-        <input type="text" id="searchInput" placeholder="Search products by name..." onkeyup="filterProducts()">
+        <input type="text" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
         <select id="categoryFilter" onchange="filterProducts()">
             <option value="">All Categories</option>
             {% for category in categories %}
             <option value="{{ category.category_name }}">{{ category.category_name }}</option>
             {% endfor %}
-        </select>
-        <select id="statusFilter" onchange="filterProducts()">
-            <option value="">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
         </select>
     </div>
 
@@ -239,17 +234,17 @@
         <div class="stat-card">
             <h3>Total Products</h3>
             <div class="stat-value">{{ products|length }}</div>
-            <p class="stat-label">All products</p>
+            <p class="stat-label">Available for order</p>
         </div>
         <div class="stat-card" style="border-left: 4px solid #27ae60;">
-            <h3>Active Products</h3>
-            <div class="stat-value" style="color: #27ae60;">{{ active_count }}</div>
-            <p class="stat-label">Available for sale</p>
+            <h3>Categories</h3>
+            <div class="stat-value" style="color: #27ae60;">{{ categories|length }}</div>
+            <p class="stat-label">Product types</p>
         </div>
         <div class="stat-card">
-            <h3>Categories</h3>
-            <div class="stat-value">{{ categories|length }}</div>
-            <p class="stat-label">Product types</p>
+            <h3>Premium Quality</h3>
+            <div class="stat-value">✓</div>
+            <p class="stat-label">FSSAI certified</p>
         </div>
     </div>
 
@@ -257,14 +252,13 @@
     {% if products %}
     <div class="product-grid" id="productGrid">
         {% for product in products %}
-        <div class="product-item {% if not product.is_active %}inactive{% endif %}" 
+        <div class="product-item" 
              data-name="{{ product.product_name|lower }}" 
-             data-category="{{ product.category_name }}"
-             data-status="{% if product.is_active %}active{% else %}inactive{% endif %}">
+             data-category="{{ product.category_name }}">
             
             <!-- Product Image -->
             <div class="product-image">
-                {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '') ~ '.png' %}
+                {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '')|replace('/', '') ~ '.png' %}
                 <img src="{{ url_for('static', filename='images/products/' ~ image_name) }}" 
                      alt="{{ product.product_name }}"
                      onerror="this.src='{{ url_for('static', filename='images/products/placeholder.png') }}'">
@@ -286,32 +280,10 @@
                 
                 <div class="product-price">₹{{ "%.2f"|format(product.unit_price) }}</div>
                 
-                <div class="product-status">
-                    {% if product.is_active %}
-                    <span class="status-badge delivered">Active</span>
-                    {% else %}
-                    <span class="status-badge cancelled">Inactive</span>
-                    {% endif %}
-                </div>
-                
-                <div class="product-actions">
-                    <a href="{{ url_for('edit_product', product_id=product.product_id) }}" 
-                       class="btn btn-secondary btn-small">
-                        ✏️ Edit
-                    </a>
-                    {% if product.is_active %}
-                    <a href="{{ url_for('toggle_product_status', product_id=product.product_id) }}" 
-                       class="btn btn-danger btn-small" 
-                       onclick="return confirm('Deactivate this product?')">
-                        Deactivate
-                    </a>
-                    {% else %}
-                    <a href="{{ url_for('toggle_product_status', product_id=product.product_id) }}" 
-                       class="btn btn-primary btn-small">
-                        Activate
-                    </a>
-                    {% endif %}
-                </div>
+                <a href="{{ url_for('product_detail', product_id=product.product_id) }}" 
+                   class="btn-view-details">
+                    📖 View Full Details
+                </a>
             </div>
 
         </div>
@@ -321,9 +293,8 @@
     <div class="card">
         <div class="empty-state">
             <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📦</div>
-            <h3>No Products Yet</h3>
-            <p style="margin-bottom: 20px;">Click "Add Product" to get started!</p>
-            <a href="{{ url_for('add_product') }}" class="btn btn-primary">+ Add Your First Product</a>
+            <h3>No Products Available</h3>
+            <p>Please check back later for our product catalog.</p>
         </div>
     </div>
     {% endif %}
@@ -336,14 +307,12 @@
     function filterProducts() {
         const searchInput = document.getElementById('searchInput').value.toLowerCase();
         const categoryFilter = document.getElementById('categoryFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
         
         const products = document.querySelectorAll('.product-item');
         
         products.forEach(product => {
             const name = product.getAttribute('data-name');
             const category = product.getAttribute('data-category');
-            const status = product.getAttribute('data-status');
             
             let showProduct = true;
             
@@ -352,10 +321,6 @@
             }
             
             if (categoryFilter && category !== categoryFilter) {
-                showProduct = false;
-            }
-            
-            if (statusFilter && status !== statusFilter) {
                 showProduct = false;
             }
             

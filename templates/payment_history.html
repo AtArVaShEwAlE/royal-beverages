@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment History - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    /* Tab Navigation */
+    .payment-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        background: var(--white);
+        padding: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .tab-btn {
+        padding: 12px 24px;
+        border: none;
+        background: #f8f9fa;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .tab-btn:hover {
+        background: #e9ecef;
+        color: var(--primary-dark);
+    }
+
+    .tab-btn.active {
+        background: var(--primary-dark);
+        color: var(--white);
+    }
+
+    /* Payment Method Badges */
+    .payment-method-badge {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .payment-method-badge.bank_transfer {
+        background: #3498db;
+        color: white;
+    }
+
+    .payment-method-badge.cash {
+        background: #27ae60;
+        color: white;
+    }
+
+    .payment-method-badge.cheque {
+        background: #9b59b6;
+        color: white;
+    }
+
+    .payment-method-badge.upi {
+        background: #e67e22;
+        color: white;
+    }
+
+    .payment-method-badge.other {
+        background: #95a5a6;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 30px;">
+    
+    <!-- Page Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light);">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 600; color: var(--primary-dark); margin-bottom: 4px;">Payment History</h1>
+            <p style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Complete record of all payments received</p>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="payment-tabs">
+        <a href="{{ url_for('outstanding_payments') }}" class="tab-btn">Outstanding Payments</a>
+        <a href="{{ url_for('payment_history') }}" class="tab-btn active">Payment History</a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Summary Cards -->
+    <div class="stats-grid" style="margin-bottom: 30px;">
+        <div class="stat-card" style="border-left: 4px solid #27ae60;">
+            <h3>Total Collected</h3>
+            <div class="stat-value" style="color: #27ae60;">₹{{ "%.2f"|format(total_collected) }}</div>
+            <p class="stat-label">All time</p>
+        </div>
+        <div class="stat-card">
+            <h3>Orders with Payments</h3>
+            <div class="stat-value">{{ orders_with_payments }}</div>
+            <p class="stat-label">Total orders</p>
+        </div>
+        
+        <!-- Payment Method Breakdown -->
+        {% for method in payment_summary %}
+        <div class="stat-card">
+            <h3>{{ method.payment_method|replace('_', ' ')|title }}</h3>
+            <div class="stat-value" style="font-size: 20px;">₹{{ "%.2f"|format(method.total) }}</div>
+            <p class="stat-label">{{ method.count }} payments</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Payment Records Table -->
+    <div class="card">
+        <h3 class="card-title">All Payment Records</h3>
+        
+        {% if payment_records %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Order #</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Reference</th>
+                    <th>Recorded By</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payment_records %}
+                <tr>
+                    <td style="color: var(--text-secondary);">
+                        {{ payment.payment_date.strftime('%d %b %Y') }}
+                    </td>
+                    <td style="font-weight: 600;">
+                        <a href="{{ url_for('order_detail', order_id=payment.order_id) }}" style="color: var(--primary-dark); text-decoration: none;">
+                            Order #{{ payment.order_id }}
+                        </a>
+                    </td>
+                    <td>{{ payment.organization_name }}</td>
+                    <td style="font-weight: 700; color: #27ae60;">₹{{ "%.2f"|format(payment.amount_paid) }}</td>
+                    <td>
+                        <span class="payment-method-badge {{ payment.payment_method }}">
+                            {{ payment.payment_method|replace('_', ' ')|title }}
+                        </span>
+                    </td>
+                    <td style="font-family: monospace; font-size: 12px;">
+                        {{ payment.reference_number or '-' }}
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 13px;">
+                        {{ payment.recorded_by_first }} {{ payment.recorded_by_last }}
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 13px; max-width: 200px;">
+                        {{ payment.notes or '-' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">💰</div>
+            <h3 style="margin-bottom: 10px;">No Payment Records</h3>
+            <p>No payments have been recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

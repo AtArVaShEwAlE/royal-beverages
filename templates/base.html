@@ -6,7 +6,7 @@
     <title>{% block title %}Royal Beverages{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -15,32 +15,60 @@
     {% if session.get('user_id') %}
     <header>
         <div class="container">
-            <a href="{{ url_for('dashboard') if session.get('role') in ['admin', 'staff'] else url_for('client_dashboard') }}" 
-                class="logo">
-                <img src="{{ url_for('static', filename='images/RBLOGO.png') }}" alt="RB Logo">
-            </a>
-            <nav>
-                <ul>
-                    {% if session.get('role') in ['admin', 'staff'] %}
-                        <!-- Admin & Staff Navigation -->
-                        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                        <li><a href="{{ url_for('products') }}">Products</a></li>
-                        <li><a href="{{ url_for('manage_orders') }}">Orders</a></li>
-                        <li><a href="{{ url_for('inventory') }}">Inventory</a></li>
-                        <li><a href="{{ url_for('delivery') }}">Delivery</a></li>
-                        <li><a href="{{ url_for('clients') }}">Clients</a></li>
-                        <li><a href="{{ url_for('reports') }}">Reports</a></li>
-                        <li><a href="{{ url_for('profile') }}">Profile</a></li>
-                    {% elif session.get('role') == 'client' %}
-                        <!-- Client Navigation - NO Products link -->
-                        <li><a href="{{ url_for('client_dashboard') }}">Dashboard</a></li>
-                        <li><a href="{{ url_for('place_order') }}">Place Order</a></li>
-                        <li><a href="{{ url_for('my_orders') }}">My Orders</a></li>
-                        <li><a href="{{ url_for('profile') }}">Profile</a></li>
-                    {% endif %}
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                </ul>
-            </nav>
+            <!-- Header Top Row: Logo + User Info -->
+            <div class="header-top">
+                <a href="{{ url_for('dashboard') if session.get('role') in ['admin', 'staff'] else url_for('client_dashboard') }}" 
+                    class="logo">
+                    <img src="{{ url_for('static', filename='images/RBLOGO.png') }}" alt="RB Logo">
+                </a>
+                <div class="user-info">
+                    <span>{{ session.first_name }} {{ session.last_name }}</span>
+                </div>
+            </div>
+            
+            <!-- Header Bottom Row: Navigation -->
+            <div class="header-bottom">
+                <nav>
+                    <ul>
+                        {% if session.get('role') in ['admin', 'staff'] %}
+                            <!-- Admin & Staff Navigation -->
+                            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li><a href="{{ url_for('products') }}">Products</a></li>
+                            <li><a href="{{ url_for('manage_orders') }}">Orders</a></li>
+                            <li><a href="{{ url_for('inventory') }}">Inventory</a></li>
+                            <li><a href="{{ url_for('delivery') }}">Delivery</a></li>
+                            <li><a href="{{ url_for('clients') }}">Clients</a></li>
+                            <li><a href="{{ url_for('reports') }}">Reports</a></li>
+                            
+                            <!-- Payments Link with Badge -->
+                            <li>
+                                <a href="{{ url_for('outstanding_payments') }}">
+                                    Payments
+                                    {% if outstanding_count > 0 %}
+                                    <span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 4px; font-weight: 700;">
+                                        {{ outstanding_count }}
+                                    </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            
+                            <li><a href="{{ url_for('chat_list') }}">Messages</a></li>
+                            <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                            
+                        {% elif session.get('role') == 'client' %}
+                            <!-- Client Navigation -->
+                            <li><a href="{{ url_for('client_dashboard') }}">Dashboard</a></li>
+                            <li><a href="{{ url_for('browse_products') }}">Products</a></li> 
+                            <li><a href="{{ url_for('place_order') }}">Place Order</a></li>
+                            <li><a href="{{ url_for('my_orders') }}">My Orders</a></li>
+                            <li><a href="{{ url_for('chat_list') }}">Messages</a></li>
+                            <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                        {% endif %}
+                        
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </header>
     {% endif %}

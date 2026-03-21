@@ -5,171 +5,297 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <style>
+    /* Page Header */
     .delivery-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
     }
 
+    .delivery-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .delivery-header p {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        background: var(--white);
+        padding: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .filter-tab {
+        padding: 10px 20px;
+        border: none;
+        background: #f8f9fa;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .filter-tab:hover {
+        background: #e9ecef;
+        color: var(--primary-dark);
+    }
+
+    .filter-tab.active {
+        background: var(--primary-dark);
+        color: var(--white);
+    }
+
+    /* Delivery Cards */
     .delivery-grid {
         display: grid;
         gap: 20px;
     }
 
     .delivery-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border-left: 5px solid #3a662c;
-        transition: all 0.3s;
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
+        border-left: 4px solid var(--text-secondary);
+        transition: all 0.2s;
     }
 
     .delivery-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: var(--shadow-md);
         transform: translateY(-2px);
     }
 
-    .delivery-card.dispatched { border-left-color: #9b59b6; }
-    .delivery-card.packed { border-left-color: #3498db; }
-    .delivery-card.delivered { border-left-color: #27ae60; }
+    .delivery-card.packed { border-left-color: var(--status-packed); }
+    .delivery-card.dispatched { border-left-color: var(--status-dispatched); }
+    .delivery-card.delivered { border-left-color: var(--status-delivered); }
 
     .delivery-card-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #eee;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
     }
 
+    .delivery-order-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .delivery-order-date {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Info Grid */
     .delivery-info-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 15px;
-        margin-bottom: 15px;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .delivery-info-item {
+        padding: 12px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
     }
 
     .delivery-info-item label {
-        font-size: 12px;
-        color: #666;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
         display: block;
-        margin-bottom: 3px;
+        margin-bottom: 6px;
     }
 
     .delivery-info-item span {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .delivery-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-    }
-
-    .assign-form {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-        background: #f9f9f9;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-
-    .assign-form select,
-    .assign-form input {
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
         font-size: 14px;
-        flex: 1;
-        min-width: 150px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        display: block;
+    }
+
+    /* Address Section */
+    .delivery-address {
+        background: #fafbfc;
+        padding: 16px;
+        border: 1px solid var(--border-light);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .delivery-address strong {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    /* Delivery Person Badge */
+    .delivery-person-section {
+        margin-bottom: 16px;
+    }
+
+    .delivery-person-section label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: block;
+        margin-bottom: 8px;
     }
 
     .delivery-person-badge {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         background: #e8f5e9;
-        color: #3a662c;
-        padding: 5px 12px;
-        border-radius: 20px;
+        color: #2d5016;
+        padding: 8px 16px;
+        border-radius: 4px;
         font-size: 13px;
         font-weight: 600;
     }
 
-    .filter-tabs {
+    /* Delivery Notes */
+    .delivery-notes {
+        background: #fff3cd;
+        padding: 12px;
+        border: 1px solid #ffc107;
+        margin-bottom: 16px;
+        font-size: 13px;
+    }
+
+    .delivery-notes strong {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    /* Assign Form */
+    .assign-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+        background: #fafbfc;
+        padding: 16px;
+        border: 1px solid var(--border-light);
+    }
+
+    .assign-form select,
+    .assign-form input {
+        padding: 10px 12px;
+        border: 1px solid var(--border-light);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .assign-form select:focus,
+    .assign-form input:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    /* Delivery Actions */
+    .delivery-actions {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .delivery-actions form {
+        margin: 0;
+        display: flex;
+        gap: 12px;
+        align-items: center;
         flex-wrap: wrap;
     }
 
-    .filter-tab {
-        padding: 8px 20px;
-        border: 2px solid #ddd;
-        border-radius: 20px;
-        cursor: pointer;
-        background: white;
+    .delivery-actions input[type="text"] {
+        padding: 10px 12px;
+        border: 1px solid var(--border-light);
         font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s;
+        min-width: 250px;
     }
 
-    .filter-tab.active,
-    .filter-tab:hover {
-        border-color: #3a662c;
-        background: #3a662c;
-        color: white;
+    .delivery-actions input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary-dark);
     }
 
-    .delivery-timeline {
-        position: relative;
-        padding-left: 30px;
-        margin-top: 15px;
-    }
-
-    .timeline-item {
-        position: relative;
-        padding: 10px 0;
-        font-size: 13px;
-        color: #666;
-    }
-
-    .timeline-item::before {
-        content: '✓';
-        position: absolute;
-        left: -22px;
-        top: 12px;
-        width: 16px;
-        height: 16px;
-        background: #3a662c;
-        color: white;
-        border-radius: 50%;
-        font-size: 10px;
-        display: flex;
+    .delivered-badge {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 6px;
+        color: #27ae60;
+        font-weight: 600;
+        font-size: 14px;
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
         .delivery-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 15px;
+            gap: 16px;
         }
+
+        .assign-form {
+            grid-template-columns: 1fr;
+        }
+
         .delivery-actions {
             flex-direction: column;
+            align-items: stretch;
         }
-        .assign-form {
+
+        .delivery-actions form {
+            width: 100%;
             flex-direction: column;
+        }
+
+        .delivery-actions input[type="text"] {
+            width: 100%;
+            min-width: auto;
         }
     }
 </style>
@@ -181,8 +307,8 @@
     <!-- Page Header -->
     <div class="delivery-header">
         <div>
-            <h1 style="color: #3a662c; margin-bottom: 5px;">Delivery Management</h1>
-            <p style="color: #666;">Assign and track order deliveries</p>
+            <h1>Delivery Management</h1>
+            <p>Assign and track order deliveries</p>
         </div>
     </div>
 
@@ -197,19 +323,19 @@
 
     <!-- Statistics -->
     <div class="stats-grid">
-        <div class="stat-card pending">
+        <div class="stat-card" style="border-left: 4px solid var(--status-packed);">
             <h3>Ready to Dispatch</h3>
-            <div class="stat-value">{{ packed_count }}</div>
+            <div class="stat-value" style="color: var(--status-packed);">{{ packed_count }}</div>
             <p class="stat-label">Packed orders</p>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="border-left: 4px solid var(--status-dispatched);">
             <h3>Out for Delivery</h3>
-            <div class="stat-value">{{ dispatched_count }}</div>
+            <div class="stat-value" style="color: var(--status-dispatched);">{{ dispatched_count }}</div>
             <p class="stat-label">Dispatched orders</p>
         </div>
-        <div class="stat-card success">
+        <div class="stat-card" style="border-left: 4px solid var(--status-delivered);">
             <h3>Delivered Today</h3>
-            <div class="stat-value">{{ delivered_today }}</div>
+            <div class="stat-value" style="color: var(--status-delivered);">{{ delivered_today }}</div>
             <p class="stat-label">Completed today</p>
         </div>
         <div class="stat-card">
@@ -220,11 +346,11 @@
     </div>
 
     <!-- Filter Tabs -->
-    <div class="filter-tabs" style="margin-top: 30px;">
+    <div class="filter-tabs">
         <button class="filter-tab active" onclick="filterDeliveries('all', this)">All Orders</button>
-        <button class="filter-tab" onclick="filterDeliveries('packed', this)">📦 Packed</button>
-        <button class="filter-tab" onclick="filterDeliveries('dispatched', this)">🚚 Dispatched</button>
-        <button class="filter-tab" onclick="filterDeliveries('delivered', this)">✅ Delivered</button>
+        <button class="filter-tab" onclick="filterDeliveries('packed', this)">Packed</button>
+        <button class="filter-tab" onclick="filterDeliveries('dispatched', this)">Dispatched</button>
+        <button class="filter-tab" onclick="filterDeliveries('delivered', this)">Delivered</button>
     </div>
 
     <!-- Delivery Orders List -->
@@ -236,12 +362,8 @@
             <!-- Card Header -->
             <div class="delivery-card-header">
                 <div>
-                    <div style="font-size: 18px; font-weight: bold; color: #3a662c;">
-                        {{ order.order_number }}
-                    </div>
-                    <div style="font-size: 13px; color: #666; margin-top: 3px;">
-                        {{ order.order_date.strftime('%d %b %Y') }}
-                    </div>
+                    <div class="delivery-order-number">{{ order.order_number }}</div>
+                    <div class="delivery-order-date">{{ order.order_date.strftime('%d %b %Y') }}</div>
                 </div>
                 <span class="status-badge {{ order.status }}">{{ order.status|upper }}</span>
             </div>
@@ -253,7 +375,7 @@
                     <span>{{ order.organization_name }}</span>
                 </div>
                 <div class="delivery-info-item">
-                    <label>Contact</label>
+                    <label>Contact Person</label>
                     <span>{{ order.contact_person }}</span>
                 </div>
                 <div class="delivery-info-item">
@@ -262,30 +384,31 @@
                 </div>
                 <div class="delivery-info-item">
                     <label>Amount</label>
-                    <span style="color: #3a662c;">₹{{ "%.2f"|format(order.grand_total) }}</span>
+                    <span style="color: #27ae60;">₹{{ "%.2f"|format(order.grand_total) }}</span>
                 </div>
             </div>
 
             <!-- Delivery Address -->
-            <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; font-size: 14px;">
-                <strong>📍 Delivery Address:</strong><br>
+            <div class="delivery-address">
+                <strong>📍 Delivery Address</strong>
                 {{ order.address }}, {{ order.city }}, {{ order.state }} - {{ order.pincode }}
             </div>
 
             <!-- Assigned Delivery Person -->
             {% if order.delivery_person_name %}
-            <div style="margin-top: 10px;">
-                <strong style="font-size: 13px; color: #666;">Assigned To:</strong><br>
-                <span class="delivery-person-badge" style="margin-top: 5px;">
-                    🚴 {{ order.delivery_person_name }}
+            <div class="delivery-person-section">
+                <label>Assigned To</label>
+                <span class="delivery-person-badge">
+                    👤 {{ order.delivery_person_name }}
                 </span>
             </div>
             {% endif %}
 
             <!-- Delivery Notes -->
             {% if order.delivery_notes %}
-            <div style="background: #e8f5e9; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px;">
-                <strong>📝 Delivery Notes:</strong> {{ order.delivery_notes }}
+            <div class="delivery-notes">
+                <strong>📝 Delivery Notes</strong>
+                {{ order.delivery_notes }}
             </div>
             {% endif %}
 
@@ -296,14 +419,20 @@
                 <form method="POST" action="{{ url_for('assign_delivery') }}" style="width: 100%;">
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
                     <div class="assign-form">
-                        <select name="delivery_person" required>
-                            <option value="">-- Assign Delivery Person --</option>
-                            {% for person in delivery_staff %}
-                            <option value="{{ person.user_id }}">{{ person.first_name }} {{ person.last_name }}</option>
-                            {% endfor %}
-                        </select>
-                        <input type="text" name="delivery_notes" placeholder="Delivery notes (optional)">
-                        <button type="submit" class="btn btn-primary">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; display: block;">Delivery Person</label>
+                            <select name="delivery_person" required>
+                                <option value="">Select person</option>
+                                {% for person in delivery_staff %}
+                                <option value="{{ person.user_id }}">{{ person.first_name }} {{ person.last_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; display: block;">Delivery Notes</label>
+                            <input type="text" name="delivery_notes" placeholder="Optional notes">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">
                             🚚 Dispatch Order
                         </button>
                     </div>
@@ -311,26 +440,25 @@
 
                 {% elif order.status == 'dispatched' %}
                 <!-- Mark as Delivered -->
-                <form method="POST" action="{{ url_for('mark_delivered') }}">
+                <form method="POST" action="{{ url_for('mark_delivered') }}" style="flex: 1;">
                     <input type="hidden" name="order_id" value="{{ order.order_id }}">
-                    <input type="text" name="delivery_notes" 
-                           placeholder="Delivery confirmation notes"
-                           style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
-                    <button type="submit" class="btn btn-primary"
-                            onclick="return confirm('Mark this order as delivered?')">
+                    <input type="text" name="delivery_notes" placeholder="Delivery confirmation notes">
+                    <button type="submit" class="btn btn-primary" onclick="return confirm('Mark this order as delivered?')">
                         ✅ Mark as Delivered
                     </button>
                 </form>
                 <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
                    class="btn btn-secondary btn-small" target="_blank">
-                    📄 Invoice
+                    📥 Invoice
                 </a>
 
                 {% elif order.status == 'delivered' %}
-                <span style="color: #27ae60; font-weight: bold;">✅ Delivered Successfully</span>
+                <span class="delivered-badge">
+                    ✅ Delivered Successfully
+                </span>
                 <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
                    class="btn btn-secondary btn-small" target="_blank">
-                    📄 Invoice
+                    📥 Invoice
                 </a>
                 {% endif %}
             </div>
@@ -339,11 +467,11 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="card" style="margin-top: 20px;">
-        <div style="text-align: center; padding: 40px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 15px;">🚚</div>
-            <p>No orders ready for delivery yet.</p>
-            <p style="font-size: 13px;">Orders will appear here once they are packed.</p>
+    <div class="card">
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">🚚</div>
+            <h3 style="margin-bottom: 10px;">No Delivery Orders</h3>
+            <p>Orders will appear here once they are packed and ready for delivery.</p>
         </div>
     </div>
     {% endif %}

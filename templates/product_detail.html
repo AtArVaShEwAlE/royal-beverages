@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.product_name }} - Royal Beverages{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .product-detail-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .breadcrumb {
+        margin-bottom: 20px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .breadcrumb a {
+        color: #3a662c;
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .product-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 40px;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .product-image-section {
+        position: relative;
+    }
+
+    .product-main-image {
+        width: 100%;
+        height: auto;
+        max-height: 500px;
+        object-fit: contain;
+        border-radius: 12px;
+        background: white;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .badge-active {
+        background: #27ae60;
+        color: white;
+    }
+
+    .badge-inactive {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .product-info-section h1 {
+        color: #3a662c;
+        margin-bottom: 10px;
+        font-size: 32px;
+    }
+
+    .product-category-tag {
+        display: inline-block;
+        background: #f0f0f0;
+        color: #666;
+        padding: 5px 15px;
+        border-radius: 15px;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .product-price-box {
+        background: linear-gradient(135deg, #3a662c, #5a9e42);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .product-price {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .price-label {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .product-details-table {
+        width: 100%;
+        margin: 25px 0;
+    }
+
+    .product-details-table tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    .product-details-table td {
+        padding: 12px 0;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #666;
+        width: 40%;
+    }
+
+    .detail-value {
+        color: #333;
+    }
+
+    .ingredients-section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .ingredients-section h3 {
+        color: #3a662c;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3a662c;
+    }
+
+    .ingredients-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .ingredient-tag {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        border: 1px solid #c8e6c9;
+    }
+
+    .nutrition-table {
+        width: 100%;
+        background: white;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .nutrition-table th,
+    .nutrition-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .nutrition-table th {
+        background: #3a662c;
+        color: white;
+        font-weight: 600;
+    }
+
+    .nutrition-table tr:hover {
+        background: #f9f9f9;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .btn-large {
+        padding: 14px 28px;
+        font-size: 16px;
+        border-radius: 8px;
+        flex: 1;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .info-badges {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .info-badge {
+        background: white;
+        border: 2px solid #3a662c;
+        color: #3a662c;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .product-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="{{ url_for('browse_products' if session.get('role') == 'client' else 'products') }}">
+            ← Back to Products
+        </a>
+    </div>
+
+    <!-- Product Detail -->
+    <div class="product-detail-grid">
+        
+        <!-- Image Section -->
+        <div class="product-image-section">
+            {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '')|replace('/', '') ~ '.png' %}
+            <img src="{{ url_for('static', filename='images/products/' ~ image_name) }}" 
+                 alt="{{ product.product_name }}"
+                 class="product-main-image"
+                 onerror="this.src='{{ url_for('static', filename='images/products/placeholder.png') }}'">
+            
+            <div class="product-badge {% if product.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                {{ 'In Stock' if product.is_active else 'Unavailable' }}
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="product-info-section">
+            <h1>{{ product.product_name }}</h1>
+            <span class="product-category-tag">{{ product.category_name }}</span>
+
+            <!-- Price Box -->
+            <div class="product-price-box">
+                <div class="product-price">₹{{ "%.2f"|format(product.unit_price) }}</div>
+                <div class="price-label">Price per {{ product.packaging_size }} (inclusive of GST)</div>
+            </div>
+
+            <!-- Info Badges -->
+            <div class="info-badges">
+                <div class="info-badge">📦 {{ product.packaging_size }}</div>
+                <div class="info-badge">💰 GST: {{ product.gst_percentage }}%</div>
+                <div class="info-badge">🏷️ Code: #RB{{ "%04d"|format(product.product_id) }}</div>
+            </div>
+
+            <!-- Product Details Table -->
+            <table class="product-details-table">
+                <tr>
+                    <td class="detail-label">Brand:</td>
+                    <td class="detail-value">Insta Gold</td>
+                </tr>
+                <tr>
+                    <td class="detail-label">Manufacturer:</td>
+                    <td class="detail-value">Omkar Enterprises</td>
+                </tr>
+                <tr>
+                    <td class="detail-label">FSSAI License:</td>
+                    <td class="detail-value">11517037000763</td>
+                </tr>
+                <tr>
+                    <td class="detail-label">Best Before:</td>
+                    <td class="detail-value">6 Months from Manufacturing</td>
+                </tr>
+                <tr>
+                    <td class="detail-label">Usage:</td>
+                    <td class="detail-value">Premix for Vending Machines</td>
+                </tr>
+                <tr>
+                    <td class="detail-label">Product Type:</td>
+                    <td class="detail-value">Proprietary Food</td>
+                </tr>
+            </table>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                {% if session.get('role') == 'client' %}
+                    {% if product.is_active %}
+                    <a href="{{ url_for('place_order') }}" class="btn btn-primary btn-large">
+                        🛒 Order Now
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary btn-large" disabled>
+                        Currently Unavailable
+                    </button>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('edit_product', product_id=product.product_id) }}" 
+                       class="btn btn-primary btn-large">
+                        ✏️ Edit Product
+                    </a>
+                    <a href="{{ url_for('products') }}" 
+                       class="btn btn-secondary btn-large">
+                        ← Back to List
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ingredients Section -->
+    <div class="ingredients-section">
+        <h3>🌿 Ingredients</h3>
+        
+        {% if 'Coffee' in product.product_name %}
+        <div class="ingredients-list">
+            <span class="ingredient-tag">Milk Solids</span>
+            <span class="ingredient-tag">Sugar</span>
+            <span class="ingredient-tag">Coffee Powder</span>
+            <span class="ingredient-tag">Malt Dextrin</span>
+        </div>
+        
+        {% elif 'Elaichi' in product.product_name %}
+        <div class="ingredients-list">
+            <span class="ingredient-tag">Milk Solids</span>
+            <span class="ingredient-tag">Sugar</span>
+            <span class="ingredient-tag">Instant Tea</span>
+            <span class="ingredient-tag">Malt Dextrin</span>
+            <span class="ingredient-tag">Cardamom (Elaichi)</span>
+        </div>
+        
+        {% elif 'Ginger' in product.product_name %}
+        <div class="ingredients-list">
+            <span class="ingredient-tag">Milk Solids</span>
+            <span class="ingredient-tag">Sugar</span>
+            <span class="ingredient-tag">Instant Tea</span>
+            <span class="ingredient-tag">Malt Dextrin</span>
+            <span class="ingredient-tag">Ginger Extract</span>
+        </div>
+        
+        {% elif 'Lemon' in product.product_name %}
+        <div class="ingredients-list">
+            <span class="ingredient-tag">Instant Tea</span>
+            <span class="ingredient-tag">Sugar</span>
+            <span class="ingredient-tag">Lemon Powder</span>
+        </div>
+        
+        {% else %}
+        <p style="color: #666;">Premium quality ingredients for best taste and aroma.</p>
+        {% endif %}
+    </div>
+
+    <!-- Nutritional Information -->
+    <div class="ingredients-section">
+        <h3>📊 Nutritional Information</h3>
+        <p style="color: #666; margin-bottom: 15px;">Typical Values Per 100g</p>
+        
+        {% if 'Coffee' in product.product_name %}
+        <table class="nutrition-table">
+            <thead>
+                <tr>
+                    <th>Nutrient</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Energy</td>
+                    <td>405 Kcal</td>
+                </tr>
+                <tr>
+                    <td>Protein</td>
+                    <td>7.00 g</td>
+                </tr>
+                <tr>
+                    <td>Fat</td>
+                    <td>7.00 g</td>
+                </tr>
+                <tr>
+                    <td>Carbohydrates</td>
+                    <td>77.00 g</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        {% elif 'Elaichi' in product.product_name or 'Ginger' in product.product_name %}
+        <table class="nutrition-table">
+            <thead>
+                <tr>
+                    <th>Nutrient</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Energy</td>
+                    <td>422 Kcal</td>
+                </tr>
+                <tr>
+                    <td>Protein</td>
+                    <td>7.05 g</td>
+                </tr>
+                <tr>
+                    <td>Fat</td>
+                    <td>6.60 g</td>
+                </tr>
+                <tr>
+                    <td>Carbohydrates</td>
+                    <td>78.00 g</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        {% else %}
+        <p style="color: #666;">Nutritional information available on product packaging.</p>
+        {% endif %}
+    </div>
+
+    <!-- Manufacturing Info -->
+    <div class="ingredients-section">
+        <h3>🏭 Manufacturing & Contact Information</h3>
+        <table class="product-details-table">
+            <tr>
+                <td class="detail-label">Manufactured & Marketed by:</td>
+                <td class="detail-value"><strong>Omkar Enterprises</strong></td>
+            </tr>
+            <tr>
+                <td class="detail-label">Address:</td>
+                <td class="detail-value">Flat No. 2, Renuka Recidency,<br>
+                    Near Sai Chowk, New Sangvi, Pune - 27</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Phone:</td>
+                <td class="detail-value">8888864334 / 8888864335</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Email:</td>
+                <td class="detail-value">omkar.enterprises76@gmail.com</td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

@@ -9,25 +9,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 32px;
+        margin-bottom: 30px;
         padding-bottom: 20px;
-        border-bottom: 1px solid var(--border-light);
-    }
-
-    .clients-header h1 {
-        font-size: 28px;
-        font-weight: 600;
-        color: var(--primary-dark);
-        margin-bottom: 4px;
-        letter-spacing: -0.02em;
-    }
-
-    .clients-header p {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        border-bottom: 1px solid #e1e8ed;
     }
 
     .clients-grid {
@@ -38,20 +22,20 @@
     }
 
     .client-card {
-        background: var(--white);
-        border: 1px solid var(--border-light);
+        background: #ffffff;
+        border: 1px solid #e1e8ed;
         padding: 24px;
         transition: all 0.2s;
-        border-left: 4px solid #2d5016; /* Dark green border */
+        border-left: 4px solid #27ae60;
     }
 
     .client-card:hover {
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         transform: translateY(-2px);
     }
 
     .client-card.inactive {
-        border-left-color: var(--status-cancelled);
+        border-left-color: #e74c3c;
         opacity: 0.7;
     }
 
@@ -65,16 +49,15 @@
     .client-name {
         font-size: 18px;
         font-weight: 600;
-        color: var(--primary-dark);
+        color: #1a1a1a;
         margin-bottom: 4px;
     }
 
     .client-org {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-secondary);
+        font-size: 13px;
+        color: #7f8c8d;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
     }
 
     .client-info {
@@ -90,7 +73,7 @@
         gap: 8px;
         margin-bottom: 8px;
         font-size: 13px;
-        color: var(--text-primary);
+        color: #2c3e50;
     }
 
     .info-row:last-child {
@@ -99,10 +82,10 @@
 
     .info-label {
         font-weight: 600;
-        color: var(--text-secondary);
+        color: #7f8c8d;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-size: 10px;
+        letter-spacing: 0.05em;
+        font-size: 11px;
         min-width: 80px;
     }
 
@@ -114,186 +97,91 @@
 
     .btn-chat {
         flex: 1;
-        padding: 12px;
-        background: #2d5016; /* Dark green */
+        padding: 10px;
+        background: #1a1a1a;
         color: white;
         text-decoration: none;
         text-align: center;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
         transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        border: none;
     }
 
     .btn-chat:hover {
-        background: #1f3910; /* Darker green */
+        background: #000000;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(45, 80, 22, 0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .btn-view {
-        padding: 12px 16px;
+        padding: 10px 16px;
         background: #f8f9fa;
-        color: var(--text-primary);
-        border: 1px solid var(--border-light);
+        color: #2c3e50;
+        border: 1px solid #e1e8ed;
         text-decoration: none;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
         transition: all 0.2s;
     }
 
     .btn-view:hover {
-        background: var(--white);
-        border-color: var(--primary-dark);
-        color: var(--primary-dark);
+        background: #ffffff;
+        border-color: #1a1a1a;
+        color: #1a1a1a;
     }
 
     .search-bar {
         display: flex;
         gap: 12px;
         margin-bottom: 24px;
-        background: var(--white);
+        background: #ffffff;
         padding: 20px;
-        border: 1px solid var(--border-light);
+        border: 1px solid #e1e8ed;
     }
 
     .search-bar input {
         flex: 1;
         padding: 12px 16px;
-        border: 1px solid var(--border-light);
+        border: 1px solid #e1e8ed;
         font-size: 14px;
-        font-family: 'Inter', sans-serif;
-        color: var(--text-primary);
     }
 
     .search-bar input:focus {
         outline: none;
-        border-color: var(--primary-dark);
-        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+        border-color: #1a1a1a;
     }
 
-    .search-bar input::placeholder {
-        color: var(--text-secondary);
+    
+    nav a[href*="chat_list"] {
+        position: relative;
     }
 
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 32px;
-    }
-
-    .stat-card {
-        background: var(--white);
-        border: 1px solid var(--border-light);
-        padding: 24px;
-        text-align: center;
-        transition: all 0.2s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .stat-card h3 {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 12px;
-    }
-
-    .stat-value {
-        font-size: 36px;
-        font-weight: 700;
-        color: var(--primary-dark);
-        line-height: 1;
-        letter-spacing: -0.02em;
-        margin-bottom: 8px;
-    }
-
-    .stat-label {
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .stat-card.success {
-        border-left: 4px solid #2d5016; /* Dark green */
-    }
-
-    .stat-card.success .stat-value {
-        color: #2d5016;
-    }
-
-    .stat-card.warning {
-        border-left: 4px solid var(--status-cancelled);
-    }
-
-    .stat-card.warning .stat-value {
-        color: var(--status-cancelled);
-    }
-
-    /* Status Badges */
-    .status-badge.delivered {
-        background: #2d5016; /* Dark green */
+    nav a[href*="chat_list"]::after {
+        content: attr(data-unread);
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #e74c3c;
         color: white;
-        padding: 6px 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
         font-size: 10px;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        border: 1px solid #2d5016;
+        display: none;
     }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-        color: var(--text-secondary);
+    nav a[href*="chat_list"][data-unread]:not([data-unread="0"])::after {
+        display: block;
     }
-
-    .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-        opacity: 0.3;
-    }
-
-    .empty-state p {
-        font-size: 16px;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .clients-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .client-actions {
-            flex-direction: column;
-        }
-
-        .btn-view {
-            text-align: center;
-        }
-    }
+    
 </style>
 {% endblock %}
 
@@ -303,8 +191,10 @@
     <!-- Header -->
     <div class="clients-header">
         <div>
-            <h1>Clients</h1>
-            <p>Manage Client Accounts</p>
+            <h1 style="color: #1a1a1a; font-size: 28px; font-weight: 600; margin-bottom: 4px;">Clients</h1>
+            <p style="color: #7f8c8d; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;">
+                Manage Client Accounts
+            </p>
         </div>
     </div>
 

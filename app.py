@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from flask_mysqldb import MySQL
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from config import config
 from datetime import datetime
@@ -20,11 +21,43 @@ import os
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load configuration
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # 30 days
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.from_object(config['development'])
 
-# Initialize MySQL
-mysql = MySQL(app)
+if app.config.get('USE_POSTGRES', False):
+    # PostgreSQL via SQLAlchemy
+    db = SQLAlchemy(app)
+    mysql = None
+else:
+    # MySQL
+    mysql = MySQL(app)
+    db = None
+
+
+@app.context_processor
+def inject_outstanding_count():
+    """Inject outstanding payment count into all templates"""
+    outstanding_count = 0
+    
+    # Only calculate for logged-in admin/staff users
+    if 'user_id' in session and session.get('role') in ['admin', 'staff']:
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) as count 
+                FROM orders 
+                WHERE payment_status IN ('pending', 'partial')
+            """)
+            result = cursor.fetchone()
+            outstanding_count = result['count'] if result else 0
+            cursor.close()
+        except Exception as e:
+            print(f"Error getting outstanding count: {str(e)}")
+            outstanding_count = 0
+    
+    return dict(outstanding_count=outstanding_count)
 
 @app.route('/')
 def index():
@@ -36,7 +69,7 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle user login - CLEAN VERSION"""
+    """Handle user login - WITH REMEMBER ME"""
     # If already logged in, redirect
     if 'user_id' in session:
         if session.get('role') in ['admin', 'staff']:
@@ -47,6 +80,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = request.form.get('remember')  # Get remember me checkbox
         
         try:
             cursor = mysql.connection.cursor()
@@ -81,6 +115,12 @@ def login():
                 session['role'] = user['role']
                 session['first_name'] = user['first_name']
                 session['last_name'] = user['last_name']
+                
+                # NEW: Make session permanent if Remember Me checked
+                if remember:
+                    session.permanent = True  # Lasts 30 days
+                else:
+                    session.permanent = False  # Expires when browser closes
                 
                 # Redirect based on role
                 if user['role'] in ['admin', 'staff']:
@@ -207,7 +247,6 @@ def signup():
     return render_template('signup.html')
 
 
-
 @app.route('/dashboard')
 def dashboard():
     """Admin dashboard"""
@@ -236,6 +275,14 @@ def dashboard():
         # Total clients
         cursor.execute("SELECT COUNT(*) as count FROM clients")
         total_clients = cursor.fetchone()['count']
+        
+        # NEW: Outstanding payments count
+        cursor.execute("""
+            SELECT COUNT(*) as count 
+            FROM orders 
+            WHERE payment_status IN ('pending', 'partial')
+        """)
+        outstanding_count = cursor.fetchone()['count']
         
         # Recent orders (last 5)
         cursor.execute("""
@@ -308,7 +355,8 @@ def dashboard():
                              total_revenue=total_revenue,
                              total_clients=total_clients,
                              recent_orders=recent_orders,
-                             recent_activity=recent_activity)
+                             recent_activity=recent_activity,
+                             outstanding_count=outstanding_count)  # NEW
     
     except Exception as e:
         import traceback
@@ -320,8 +368,10 @@ def dashboard():
                              total_revenue=0,
                              total_clients=0,
                              recent_orders=[],
-                             recent_activity=[])
-
+                             recent_activity=[],
+                             outstanding_count=0)  # NEW
+ 
+ 
 @app.route('/client/dashboard')
 def client_dashboard():
     """Client dashboard"""
@@ -385,7 +435,8 @@ def client_dashboard():
                              pending_orders=pending_orders,
                              delivered_orders=delivered_orders,
                              total_spent=total_spent,
-                             recent_orders=recent_orders)
+                             recent_orders=recent_orders,
+                             outstanding_count=0)  # NEW - clients don't need this but base.html checks for it
     
     except Exception as e:
         import traceback
@@ -396,7 +447,8 @@ def client_dashboard():
                              pending_orders=0,
                              delivered_orders=0,
                              total_spent=0,
-                             recent_orders=[])
+                             recent_orders=[],
+                             outstanding_count=0)  # NEW
 # ================================================
 # PRODUCT MANAGEMENT ROUTES
 # ================================================
@@ -423,6 +475,13 @@ def products():
         """)
         products = cursor.fetchall()
         
+        # DEBUG: Print what we got
+        print(f"=== DEBUG PRODUCTS ===")
+        print(f"Type: {type(products)}")
+        print(f"Length: {len(products) if products else 'None'}")
+        print(f"Products: {products}")
+        print(f"======================")
+        
         cursor.execute("SELECT * FROM categories ORDER BY category_name")
         categories = cursor.fetchall()
         
@@ -437,13 +496,14 @@ def products():
         
     except Exception as e:
         print(f"Products error: {str(e)}")
+        import traceback
+        traceback.print_exc()  # Print full error
         flash('Error loading products', 'danger')
         return render_template('products.html', 
                              products=[],
                              categories=[],
                              active_count=0)
-
-
+    
 @app.route('/products/add', methods=['GET'])
 def add_product():
     """Add new product page"""
@@ -659,6 +719,9 @@ def place_order():
         flash('Only clients can place orders', 'danger')
         return redirect(url_for('dashboard'))
     
+    # NEW: Check for repeat order items
+    repeat_items = session.pop('repeat_order_items', None)
+    
     try:
         cursor = mysql.connection.cursor()
         
@@ -673,13 +736,15 @@ def place_order():
         
         cursor.close()
         
-        return render_template('place_order.html', products=products)
+        # NEW: Pass repeat_items to template
+        return render_template('place_order.html', 
+                             products=products,
+                             repeat_items=repeat_items)
         
     except Exception as e:
         print(f"Place order error: {str(e)}")
         flash('Error loading products', 'danger')
         return redirect(url_for('client_dashboard'))
-
 
 @app.route('/orders/place/submit', methods=['POST'])
 def place_order_submit():
@@ -1061,6 +1126,67 @@ def update_order_status(order_id, status):
         flash('Error updating order status', 'danger')
     
     return redirect(url_for('manage_orders'))
+
+@app.route('/orders/repeat/<int:order_id>', methods=['POST'])
+def repeat_order(order_id):
+    """Repeat a previous order"""
+    if 'user_id' not in session or session.get('role') != 'client':
+        flash('Access denied', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Verify order belongs to this client
+        cursor.execute("""
+            SELECT o.order_id FROM orders o
+            JOIN clients c ON o.client_id = c.client_id
+            WHERE o.order_id = %s AND c.user_id = %s
+        """, (order_id, session['user_id']))
+        
+        if not cursor.fetchone():
+            flash('Order not found', 'danger')
+            cursor.close()
+            return redirect(url_for('my_orders'))
+        
+        # Get order items
+        cursor.execute("""
+            SELECT oi.product_id, oi.quantity, p.product_name, p.is_active
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = %s
+        """, (order_id,))
+        
+        items = cursor.fetchall()
+        cursor.close()
+        
+        if not items:
+            flash('No items found in this order', 'warning')
+            return redirect(url_for('my_orders'))
+        
+        # Store items in session
+        repeat_items = {}
+        inactive_products = []
+        
+        for item in items:
+            if item['is_active']:
+                repeat_items[str(item['product_id'])] = item['quantity']
+            else:
+                inactive_products.append(item['product_name'])
+        
+        session['repeat_order_items'] = repeat_items
+        session.modified = True
+        
+        if inactive_products:
+            flash(f'Note: Some products are no longer available: {", ".join(inactive_products)}', 'warning')
+        
+        flash(f'Order items loaded! Review and place your order.', 'success')
+        return redirect(url_for('place_order'))
+        
+    except Exception as e:
+        print(f"Repeat order error: {str(e)}")
+        flash('Error repeating order', 'danger')
+        return redirect(url_for('my_orders'))
 
 @app.route('/feedback/submit', methods=['POST'])
 def submit_feedback():
@@ -2312,11 +2438,715 @@ def mark_delivered():
 
     return redirect(url_for('delivery'))
 
+@app.route('/browse-products')
+def browse_products():
+    """Browse products catalog - FOR CLIENTS (read-only)"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Only allow clients
+    if session.get('role') != 'client':
+        flash('Use the Products page for management', 'info')
+        return redirect(url_for('products'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get only active products for clients
+        cursor.execute("""
+            SELECT p.*, c.category_name 
+            FROM products p
+            JOIN categories c ON p.category_id = c.category_id
+            WHERE p.is_active = TRUE
+            ORDER BY c.category_name, p.product_name
+        """)
+        products = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM categories ORDER BY category_name")
+        categories = cursor.fetchall()
+        
+        cursor.close()
+        
+        return render_template('browse_products.html', 
+                             products=products,
+                             categories=categories)
+        
+    except Exception as e:
+        print(f"Browse products error: {str(e)}")
+        flash('Error loading products', 'danger')
+        return redirect(url_for('client_dashboard'))
+
+
+# Product detail route (already exists - just verify it's there)
+@app.route('/products/<int:product_id>')
+def product_detail(product_id):
+    """Product detail page - accessible to all logged-in users"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        cursor.execute("""
+            SELECT p.*, c.category_name 
+            FROM products p
+            JOIN categories c ON p.category_id = c.category_id
+            WHERE p.product_id = %s
+        """, (product_id,))
+        
+        product = cursor.fetchone()
+        cursor.close()
+        
+        if not product:
+            flash('Product not found', 'danger')
+            return redirect(url_for('browse_products' if session.get('role') == 'client' else 'products'))
+        
+        return render_template('product_detail.html', product=product)
+        
+    except Exception as e:
+        print(f"Product detail error: {str(e)}")
+        flash('Error loading product', 'danger')
+        return redirect(url_for('browse_products' if session.get('role') == 'client' else 'products'))
+
+
+@app.route('/chat')
+def chat_list():
+    """List all conversations - Admin sees all clients, Client sees admin only"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        if session.get('role') in ['admin', 'staff']:
+            # Admin: Get all clients with latest message
+            cursor.execute("""
+                SELECT DISTINCT
+                    u.user_id,
+                    u.username,
+                    u.first_name,
+                    u.last_name,
+                    c.organization_name,
+                    (SELECT COUNT(*) 
+                     FROM messages 
+                     WHERE sender_id = u.user_id 
+                       AND receiver_id = %s 
+                       AND is_read = FALSE) as unread_count,
+                    (SELECT message_text 
+                     FROM messages 
+                     WHERE (sender_id = u.user_id AND receiver_id = %s)
+                        OR (sender_id = %s AND receiver_id = u.user_id)
+                     ORDER BY created_at DESC LIMIT 1) as last_message,
+                    (SELECT created_at 
+                     FROM messages 
+                     WHERE (sender_id = u.user_id AND receiver_id = %s)
+                        OR (sender_id = %s AND receiver_id = u.user_id)
+                     ORDER BY created_at DESC LIMIT 1) as last_message_time
+                FROM users u
+                JOIN clients c ON u.user_id = c.user_id
+                WHERE u.role = 'client' AND u.is_active = TRUE
+                ORDER BY last_message_time DESC
+            """, (session['user_id'], session['user_id'], session['user_id'], 
+                  session['user_id'], session['user_id']))
+            
+            conversations = cursor.fetchall()
+            
+        else:
+            # Client: Get admin contact
+            cursor.execute("""
+                SELECT 
+                    u.user_id,
+                    u.username,
+                    u.first_name,
+                    u.last_name,
+                    'Royal Beverages Support' as organization_name,
+                    (SELECT COUNT(*) 
+                     FROM messages 
+                     WHERE sender_id = u.user_id 
+                       AND receiver_id = %s 
+                       AND is_read = FALSE) as unread_count,
+                    (SELECT message_text 
+                     FROM messages 
+                     WHERE (sender_id = u.user_id AND receiver_id = %s)
+                        OR (sender_id = %s AND receiver_id = u.user_id)
+                     ORDER BY created_at DESC LIMIT 1) as last_message,
+                    (SELECT created_at 
+                     FROM messages 
+                     WHERE (sender_id = u.user_id AND receiver_id = %s)
+                        OR (sender_id = %s AND receiver_id = u.user_id)
+                     ORDER BY created_at DESC LIMIT 1) as last_message_time
+                FROM users u
+                WHERE u.role = 'admin' AND u.is_active = TRUE
+                LIMIT 1
+            """, (session['user_id'], session['user_id'], session['user_id'],
+                  session['user_id'], session['user_id']))
+            
+            admin = cursor.fetchone()
+            conversations = [admin] if admin else []
+        
+        cursor.close()
+        
+        return render_template('chat_list.html', conversations=conversations)
+        
+    except Exception as e:
+        print(f"Chat list error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading conversations', 'danger')
+        return redirect(url_for('dashboard' if session.get('role') in ['admin', 'staff'] else 'client_dashboard'))
+
+
+@app.route('/chat/<int:user_id>')
+def chat_conversation(user_id):
+    """View conversation with a specific user"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get other user's info
+        cursor.execute("""
+            SELECT u.user_id, u.username, u.first_name, u.last_name, u.role,
+                   c.organization_name
+            FROM users u
+            LEFT JOIN clients c ON u.user_id = c.user_id
+            WHERE u.user_id = %s
+        """, (user_id,))
+        
+        other_user = cursor.fetchone()
+        
+        if not other_user:
+            flash('User not found', 'danger')
+            return redirect(url_for('chat_list'))
+        
+        # Get all messages in conversation
+        cursor.execute("""
+            SELECT m.*, 
+                   sender.first_name as sender_first_name,
+                   sender.last_name as sender_last_name
+            FROM messages m
+            JOIN users sender ON m.sender_id = sender.user_id
+            WHERE (m.sender_id = %s AND m.receiver_id = %s)
+               OR (m.sender_id = %s AND m.receiver_id = %s)
+            ORDER BY m.created_at ASC
+        """, (session['user_id'], user_id, user_id, session['user_id']))
+        
+        messages = cursor.fetchall()
+        
+        # Mark messages as read
+        cursor.execute("""
+            UPDATE messages 
+            SET is_read = TRUE 
+            WHERE receiver_id = %s AND sender_id = %s AND is_read = FALSE
+        """, (session['user_id'], user_id))
+        
+        mysql.connection.commit()
+        cursor.close()
+        
+        return render_template('chat_conversation.html', 
+                             other_user=other_user,
+                             messages=messages)
+        
+    except Exception as e:
+        print(f"Chat conversation error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading conversation', 'danger')
+        return redirect(url_for('chat_list'))
+
+
+@app.route('/chat/<int:user_id>/send', methods=['POST'])
+def send_message(user_id):
+    """Send a message to a user"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    message_text = request.form.get('message', '').strip()
+    
+    if not message_text:
+        flash('Message cannot be empty', 'warning')
+        return redirect(url_for('chat_conversation', user_id=user_id))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Insert message
+        cursor.execute("""
+            INSERT INTO messages (sender_id, receiver_id, message_text)
+            VALUES (%s, %s, %s)
+        """, (session['user_id'], user_id, message_text))
+        
+        mysql.connection.commit()
+        cursor.close()
+        
+        return redirect(url_for('chat_conversation', user_id=user_id))
+        
+    except Exception as e:
+        print(f"Send message error: {str(e)}")
+        flash('Error sending message', 'danger')
+        return redirect(url_for('chat_conversation', user_id=user_id))
+
+
+@app.route('/chat/unread-count')
+def get_unread_count():
+    """API endpoint to get unread message count (for navbar badge)"""
+    if 'user_id' not in session:
+        return {'count': 0}
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM messages
+            WHERE receiver_id = %s AND is_read = FALSE
+        """, (session['user_id'],))
+        
+        result = cursor.fetchone()
+        cursor.close()
+        
+        return {'count': result['count'] if result else 0}
+        
+    except Exception as e:
+        print(f"Unread count error: {str(e)}")
+        return {'count': 0}
+
+@app.route('/order/<int:order_id>')
+def order_detail(order_id):
+    """View detailed information about an order"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get order details
+        cursor.execute("""
+            SELECT o.*, 
+                   c.organization_name, c.contact_person, c.contact_email, c.contact_phone,
+                   c.address, c.city, c.state, c.pincode,
+                   u.first_name, u.last_name
+            FROM orders o
+            JOIN clients c ON o.client_id = c.client_id
+            JOIN users u ON c.user_id = u.user_id
+            WHERE o.order_id = %s
+        """, (order_id,))
+        
+        order = cursor.fetchone()
+        
+        if not order:
+            flash('Order not found', 'danger')
+            return redirect(url_for('manage_orders'))
+        
+        # Check permissions
+        if session.get('role') == 'client':
+            cursor.execute("SELECT client_id FROM clients WHERE user_id = %s", (session['user_id'],))
+            client = cursor.fetchone()
+            if not client or client['client_id'] != order['client_id']:
+                flash('Unauthorized access', 'danger')
+                return redirect(url_for('my_orders'))
+        
+        # Get order items
+        cursor.execute("""
+            SELECT oi.*, p.product_name
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.product_id
+            WHERE oi.order_id = %s
+        """, (order_id,))
+        
+        order_items = cursor.fetchall()
+        
+        # Get payment records
+        cursor.execute("""
+            SELECT pr.*, 
+                   u.first_name as recorded_by_first, 
+                   u.last_name as recorded_by_last
+            FROM payment_records pr
+            JOIN users u ON pr.recorded_by = u.user_id
+            WHERE pr.order_id = %s
+            ORDER BY pr.payment_date DESC, pr.created_at DESC
+        """, (order_id,))
+        
+        payment_records = cursor.fetchall()
+        
+        cursor.close()
+        
+        # Get today's date for payment modal
+        from datetime import date
+        today = date.today().isoformat()
+        
+        return render_template('order_detail.html',
+                             order=order,
+                             order_items=order_items,
+                             payment_records=payment_records,
+                             today=today)
+        
+    except Exception as e:
+        print(f"Order detail error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading order details', 'danger')
+        return redirect(url_for('manage_orders'))
+
+@app.route('/order/<int:order_id>/record-payment', methods=['POST'])
+def record_payment(order_id):
+    """Record a payment for an order"""
+    if 'user_id' not in session or session.get('role') not in ['admin', 'staff']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        amount_paid = float(request.form.get('amount_paid', 0))
+        payment_method = request.form.get('payment_method')
+        payment_date = request.form.get('payment_date')
+        reference_number = request.form.get('reference_number', '').strip()
+        notes = request.form.get('notes', '').strip()
+        
+        # Validation
+        if amount_paid <= 0:
+            flash('Payment amount must be greater than zero', 'warning')
+            return redirect(url_for('order_detail', order_id=order_id))
+        
+        if not payment_method or payment_method not in ['bank_transfer', 'cash', 'cheque', 'upi', 'other']:
+            flash('Please select a valid payment method', 'warning')
+            return redirect(url_for('order_detail', order_id=order_id))
+        
+        if not payment_date:
+            flash('Please select payment date', 'warning')
+            return redirect(url_for('order_detail', order_id=order_id))
+        
+        cursor = mysql.connection.cursor()
+        
+        # Get order details - FIXED: Use grand_total instead of final_amount
+        cursor.execute("""
+            SELECT order_id, grand_total, total_paid, outstanding_amount
+            FROM orders
+            WHERE order_id = %s
+        """, (order_id,))
+        
+        order = cursor.fetchone()
+        
+        if not order:
+            flash('Order not found', 'danger')
+            return redirect(url_for('manage_orders'))
+        
+        # Check if payment exceeds outstanding amount
+        current_outstanding = float(order['outstanding_amount'] or order['grand_total'])
+        if amount_paid > current_outstanding:
+            flash(f'Payment amount (₹{amount_paid:.2f}) exceeds outstanding amount (₹{current_outstanding:.2f})', 'warning')
+            return redirect(url_for('order_detail', order_id=order_id))
+        
+        # Insert payment record
+        cursor.execute("""
+            INSERT INTO payment_records 
+            (order_id, amount_paid, payment_method, payment_date, reference_number, notes, recorded_by)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (order_id, amount_paid, payment_method, payment_date, reference_number, notes, session['user_id']))
+        
+        # Update order payment status - FIXED: Use grand_total
+        new_total_paid = float(order['total_paid'] or 0) + amount_paid
+        new_outstanding = float(order['grand_total']) - new_total_paid
+        
+        # Determine payment status
+        if new_outstanding <= 0:
+            payment_status = 'paid'
+            new_outstanding = 0
+        elif new_total_paid > 0:
+            payment_status = 'partial'
+        else:
+            payment_status = 'pending'
+        
+        cursor.execute("""
+            UPDATE orders
+            SET total_paid = %s,
+                outstanding_amount = %s,
+                payment_status = %s
+            WHERE order_id = %s
+        """, (new_total_paid, new_outstanding, payment_status, order_id))
+        
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash(f'Payment of ₹{amount_paid:.2f} recorded successfully', 'success')
+        return redirect(url_for('order_detail', order_id=order_id))
+        
+    except ValueError:
+        flash('Invalid payment amount', 'danger')
+        return redirect(url_for('order_detail', order_id=order_id))
+    except Exception as e:
+        print(f"Record payment error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error recording payment', 'danger')
+        return redirect(url_for('order_detail', order_id=order_id))
+
+@app.route('/payments/test')
+def payment_test():
+    """Test route to verify payments routing works"""
+    return f"""
+    <h1>Payment Test Route Works!</h1>
+    <p>User ID: {session.get('user_id')}</p>
+    <p>Role: {session.get('role')}</p>
+    <hr>
+    <a href="{url_for('outstanding_payments')}">Try Outstanding Payments</a><br>
+    <a href="{url_for('dashboard')}">Back to Dashboard</a>
+    """
+
+@app.route('/payments/outstanding')
+def outstanding_payments():
+    """View all orders with outstanding payments"""
+    if 'user_id' not in session or session.get('role') not in ['admin', 'staff']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get all orders with outstanding payments
+        cursor.execute("""
+            SELECT 
+                o.order_id,
+                o.order_number,
+                o.order_date,
+                o.grand_total as final_amount,
+                o.total_paid,
+                o.outstanding_amount,
+                o.payment_status,
+                c.organization_name,
+                c.contact_person,
+                c.contact_email,
+                c.contact_phone,
+                DATEDIFF(CURDATE(), o.order_date) as days_since_order
+            FROM orders o
+            JOIN clients c ON o.client_id = c.client_id
+            WHERE o.payment_status IN ('pending', 'partial')
+            ORDER BY o.order_date ASC
+        """)
+        
+        orders = cursor.fetchall()
+        
+        # Calculate summary statistics
+        cursor.execute("""
+            SELECT 
+                SUM(outstanding_amount) as total_outstanding,
+                COUNT(CASE WHEN payment_status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN payment_status = 'partial' THEN 1 END) as partial_count,
+                COUNT(CASE WHEN DATEDIFF(CURDATE(), order_date) >= 30 THEN 1 END) as overdue_count
+            FROM orders
+            WHERE payment_status IN ('pending', 'partial')
+        """)
+        
+        stats = cursor.fetchone()
+        
+        cursor.close()
+        
+        return render_template('outstanding_payments.html',
+                             orders=orders,
+                             total_outstanding=stats['total_outstanding'] or 0,
+                             pending_count=stats['pending_count'] or 0,
+                             partial_count=stats['partial_count'] or 0,
+                             overdue_count=stats['overdue_count'] or 0)
+        
+    except Exception as e:
+        print(f"Outstanding payments error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading outstanding payments', 'danger')
+        return redirect(url_for('dashboard'))
+
+
+@app.route('/payments/history')
+def payment_history():
+    """View all payment records"""
+    if 'user_id' not in session or session.get('role') not in ['admin', 'staff']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get all payment records
+        cursor.execute("""
+            SELECT 
+                pr.payment_id,
+                pr.order_id,
+                pr.amount_paid,
+                pr.payment_method,
+                pr.payment_date,
+                pr.reference_number,
+                pr.notes,
+                pr.created_at,
+                c.organization_name,
+                c.contact_person,
+                u.first_name as recorded_by_first,
+                u.last_name as recorded_by_last
+            FROM payment_records pr
+            JOIN orders o ON pr.order_id = o.order_id
+            JOIN clients c ON o.client_id = c.client_id
+            JOIN users u ON pr.recorded_by = u.user_id
+            ORDER BY pr.payment_date DESC, pr.created_at DESC
+            LIMIT 100
+        """)
+        
+        payment_records = cursor.fetchall()
+        
+        # Get payment summary
+        cursor.execute("""
+            SELECT 
+                payment_method,
+                COUNT(*) as count,
+                SUM(amount_paid) as total
+            FROM payment_records
+            GROUP BY payment_method
+        """)
+        
+        payment_summary = cursor.fetchall()
+        
+        # Get total collected
+        cursor.execute("""
+            SELECT 
+                SUM(amount_paid) as total_collected,
+                COUNT(DISTINCT order_id) as orders_with_payments
+            FROM payment_records
+        """)
+        
+        totals = cursor.fetchone()
+        
+        cursor.close()
+        
+        return render_template('payment_history.html',
+                             payment_records=payment_records,
+                             payment_summary=payment_summary,
+                             total_collected=totals['total_collected'] or 0,
+                             orders_with_payments=totals['orders_with_payments'] or 0)
+        
+    except Exception as e:
+        print(f"Payment history error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error loading payment history', 'danger')
+        return redirect(url_for('dashboard'))
+
+
+@app.route('/order/<int:order_id>/payments')
+def order_payments(order_id):
+    """Get payment records for a specific order (AJAX)"""
+    if 'user_id' not in session:
+        return {'error': 'Unauthorized'}, 401
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                pr.payment_id,
+                pr.amount_paid,
+                pr.payment_method,
+                pr.payment_date,
+                pr.reference_number,
+                pr.notes,
+                pr.created_at,
+                u.first_name,
+                u.last_name
+            FROM payment_records pr
+            JOIN users u ON pr.recorded_by = u.user_id
+            WHERE pr.order_id = %s
+            ORDER BY pr.payment_date DESC
+        """, (order_id,))
+        
+        payments = cursor.fetchall()
+        cursor.close()
+        
+        return {'payments': payments}
+        
+    except Exception as e:
+        print(f"Order payments error: {str(e)}")
+        return {'error': 'Failed to load payments'}, 500
+
+
+@app.route('/payment/<int:payment_id>/delete', methods=['POST'])
+def delete_payment(payment_id):
+    """Delete a payment record (admin only)"""
+    if 'user_id' not in session or session.get('role') != 'admin':
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Get payment details before deleting
+        cursor.execute("""
+            SELECT order_id, amount_paid
+            FROM payment_records
+            WHERE payment_id = %s
+        """, (payment_id,))
+        
+        payment = cursor.fetchone()
+        
+        if not payment:
+            flash('Payment record not found', 'danger')
+            return redirect(url_for('payment_history'))
+        
+        order_id = payment['order_id']
+        amount_paid = float(payment['amount_paid'])
+        
+        # Delete payment record
+        cursor.execute("DELETE FROM payment_records WHERE payment_id = %s", (payment_id,))
+        
+        # Recalculate order payment status
+        cursor.execute("""
+            SELECT COALESCE(SUM(amount_paid), 0) as total_paid
+            FROM payment_records
+            WHERE order_id = %s
+        """, (order_id,))
+        
+        result = cursor.fetchone()
+        new_total_paid = float(result['total_paid'])
+        
+        # Get order final amount
+        cursor.execute("SELECT final_amount FROM orders WHERE order_id = %s", (order_id,))
+        order = cursor.fetchone()
+        final_amount = float(order['final_amount'])
+        
+        new_outstanding = final_amount - new_total_paid
+        
+        # Determine payment status
+        if new_outstanding <= 0:
+            payment_status = 'paid'
+        elif new_total_paid > 0:
+            payment_status = 'partial'
+        else:
+            payment_status = 'pending'
+        
+        # Update order
+        cursor.execute("""
+            UPDATE orders
+            SET total_paid = %s,
+                outstanding_amount = %s,
+                payment_status = %s
+            WHERE order_id = %s
+        """, (new_total_paid, new_outstanding, payment_status, order_id))
+        
+        mysql.connection.commit()
+        cursor.close()
+        
+        flash('Payment record deleted successfully', 'success')
+        return redirect(url_for('order_detail', order_id=order_id))
+        
+    except Exception as e:
+        print(f"Delete payment error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash('Error deleting payment record', 'danger')
+        return redirect(url_for('payment_history'))
+
 @app.route('/logout')
 def logout():
-    """Logout user"""
+    username = session.get('username', 'User')
     session.clear()
-    flash('You have been logged out successfully.', 'info')
+    session.permanent = False  # ← Add this line
+    flash(f'Logged out successfully!', 'info')
     return redirect(url_for('login'))
 
 

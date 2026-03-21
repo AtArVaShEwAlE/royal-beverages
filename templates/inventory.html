@@ -252,11 +252,11 @@
                     <div class="stock-actions">
                         <button onclick="openUpdateStockModal({{ item.product_id }}, '{{ item.product_name }}', {{ item.quantity_in_stock }})" 
                                 class="btn btn-primary btn-small">
-                            ✏️ Update
+                             Update
                         </button>
                         <a href="{{ url_for('stock_history', product_id=item.product_id) }}" 
                            class="btn btn-secondary btn-small">
-                            📊 History
+                             History
                         </a>
                     </div>
                 </div>

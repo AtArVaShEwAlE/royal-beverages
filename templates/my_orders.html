@@ -3,10 +3,199 @@
 {% block title %}My Orders - Royal Beverages{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <style>
-    /* Modal Overlay */
+    /* Page Header */
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .order-header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .order-header p {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Filter Bar */
+    .order-filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        background: var(--white);
+        padding: 20px;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-filter-bar input,
+    .order-filter-bar select {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border-light);
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .order-filter-bar input:focus,
+    .order-filter-bar select:focus {
+        outline: none;
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 3px rgba(26,26,26,0.05);
+    }
+
+    /* Order Cards */
+    .order-card {
+        background: var(--white);
+        border: 1px solid var(--border-light);
+        padding: 24px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .order-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .order-card.pending { border-left-color: var(--status-pending); }
+    .order-card.approved { border-left-color: var(--status-approved); }
+    .order-card.packed { border-left-color: var(--status-packed); }
+    .order-card.dispatched { border-left-color: var(--status-dispatched); }
+    .order-card.delivered { border-left-color: var(--status-delivered); }
+    .order-card.cancelled { border-left-color: var(--status-cancelled); }
+
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .order-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 4px;
+    }
+
+    .order-date {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .order-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .order-detail-item {
+        padding: 12px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-detail-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+    }
+
+    .order-detail-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .order-items-section {
+        margin: 16px 0;
+        padding: 16px;
+        background: #fafbfc;
+        border: 1px solid var(--border-light);
+    }
+
+    .order-items-section h4 {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-light);
+        align-items: center;
+    }
+
+    .order-actions form {
+        margin: 0;
+        display: inline;
+    }
+
+    .btn-success {
+        background: #27ae60;
+        color: white;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: #229954;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #27ae60;
+        border: 2px solid #27ae60;
+    }
+
+    .btn-outline:hover {
+        background: #27ae60;
+        color: white;
+    }
+
+    /* Modal Styles */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -30,7 +219,6 @@
         to { opacity: 1; }
     }
 
-    /* Modal Container */
     .modal-container {
         background: white;
         border-radius: 15px;
@@ -40,7 +228,6 @@
         overflow-y: auto;
         box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         animation: slideUp 0.3s ease;
-        position: relative;
     }
 
     @keyframes slideUp {
@@ -48,7 +235,6 @@
         to { transform: translateY(0); opacity: 1; }
     }
 
-    /* Modal Header */
     .modal-header {
         background: linear-gradient(135deg, #3a662c, #5a9e42);
         color: white;
@@ -60,9 +246,6 @@
     .modal-header h2 {
         margin: 0;
         font-size: 22px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
     }
 
     .modal-close {
@@ -77,9 +260,6 @@
         border-radius: 50%;
         cursor: pointer;
         font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         transition: all 0.2s;
     }
 
@@ -88,12 +268,10 @@
         transform: rotate(90deg);
     }
 
-    /* Modal Body */
     .modal-body {
         padding: 30px;
     }
 
-    /* Star Rating */
     .star-rating {
         display: flex;
         gap: 10px;
@@ -115,15 +293,6 @@
         transform: scale(1.1);
     }
 
-    .star.active {
-        animation: starPop 0.3s ease;
-    }
-
-    @keyframes starPop {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.3); }
-    }
-
     .rating-text {
         text-align: center;
         font-size: 18px;
@@ -133,7 +302,6 @@
         min-height: 30px;
     }
 
-    /* Comments Textarea */
     .comments-box {
         width: 100%;
         min-height: 100px;
@@ -143,7 +311,6 @@
         font-size: 14px;
         font-family: inherit;
         resize: vertical;
-        transition: border-color 0.2s;
         margin-top: 20px;
     }
 
@@ -152,7 +319,6 @@
         border-color: #3a662c;
     }
 
-    /* Contact Support Cards */
     .support-option {
         background: #f9f9f9;
         border: 2px solid #e0e0e0;
@@ -196,7 +362,6 @@
         font-size: 14px;
     }
 
-    /* Modal Footer */
     .modal-footer {
         padding: 20px 30px;
         border-top: 1px solid #e0e0e0;
@@ -222,7 +387,6 @@
 
     .modal-btn-primary:hover {
         background: #2d5022;
-        transform: translateY(-1px);
     }
 
     .modal-btn-secondary {
@@ -230,11 +394,6 @@
         color: #333;
     }
 
-    .modal-btn-secondary:hover {
-        background: #d0d0d0;
-    }
-
-    /* Success Message */
     .success-message {
         text-align: center;
         padding: 20px;
@@ -245,57 +404,43 @@
         color: #27ae60;
         margin-bottom: 15px;
     }
-
-    .success-message h3 {
-        color: #3a662c;
-        margin-bottom: 10px;
-    }
-
-    .success-message p {
-        color: #666;
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container" style="margin-top: 30px;">
     
-    <!-- Page Header -->
     <div class="order-header">
         <div>
-            <h1 style="color: #3a662c; margin-bottom: 5px;">My Orders</h1>
-            <p style="color: #666;">View your order history and track status</p>
+            <h1>My Orders</h1>
+            <p>View your order history and track status</p>
         </div>
-        <a href="{{ url_for('place_order') }}" class="btn btn-primary">+ Place New Order</a>
+        <a href="{{ url_for('place_order') }}" class="btn btn-primary">+ New Order</a>
     </div>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
+                <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <!-- Order Statistics -->
     <div class="stats-grid">
         <div class="stat-card">
             <h3>Total Orders</h3>
             <div class="stat-value">{{ orders|length }}</div>
             <p class="stat-label">All time</p>
         </div>
-        <div class="stat-card pending">
-            <h3>Pending Orders</h3>
-            <div class="stat-value">{{ pending_count }}</div>
+        <div class="stat-card" style="border-left: 4px solid var(--status-pending);">
+            <h3>Pending</h3>
+            <div class="stat-value" style="color: var(--status-pending);">{{ pending_count }}</div>
             <p class="stat-label">Awaiting approval</p>
         </div>
-        <div class="stat-card success">
-            <h3>Completed Orders</h3>
-            <div class="stat-value">{{ delivered_count }}</div>
-            <p class="stat-label">Successfully delivered</p>
+        <div class="stat-card" style="border-left: 4px solid var(--status-delivered);">
+            <h3>Delivered</h3>
+            <div class="stat-value" style="color: var(--status-delivered);">{{ delivered_count }}</div>
+            <p class="stat-label">Completed</p>
         </div>
         <div class="stat-card">
             <h3>Total Spent</h3>
@@ -304,14 +449,8 @@
         </div>
     </div>
 
-    <!-- Filter Bar -->
     <div class="order-filter-bar">
-        <input 
-            type="text" 
-            id="searchInput" 
-            placeholder="🔍 Search by order number..."
-            onkeyup="filterOrders()"
-        >
+        <input type="text" id="searchInput" placeholder="Search by order number..." onkeyup="filterOrders()">
         <select id="statusFilter" onchange="filterOrders()">
             <option value="">All Status</option>
             <option value="pending">Pending</option>
@@ -323,15 +462,11 @@
         </select>
     </div>
 
-    <!-- Orders List -->
     {% if orders %}
     <div id="ordersList">
         {% for order in orders %}
-        <div class="order-card {{ order.status }}" 
-             data-order-number="{{ order.order_number|lower }}"
-             data-status="{{ order.status }}">
+        <div class="order-card {{ order.status }}" data-order-number="{{ order.order_number|lower }}" data-status="{{ order.status }}">
             
-            <!-- Order Header -->
             <div class="order-card-header">
                 <div>
                     <div class="order-number">{{ order.order_number }}</div>
@@ -342,7 +477,6 @@
                 </div>
             </div>
 
-            <!-- Order Details Grid -->
             <div class="order-details-grid">
                 <div class="order-detail-item">
                     <div class="order-detail-label">Order Date</div>
@@ -357,79 +491,63 @@
                     <div class="order-detail-value">₹{{ "%.2f"|format(order.total_amount) }}</div>
                 </div>
                 <div class="order-detail-item">
-                    <div class="order-detail-label">Total Amount</div>
-                    <div class="order-detail-value" style="color: #3a662c; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
+                    <div class="order-detail-label">Grand Total</div>
+                    <div class="order-detail-value" style="color: #27ae60; font-size: 18px;">₹{{ "%.2f"|format(order.grand_total) }}</div>
                 </div>
             </div>
 
-            <!-- Order Items -->
             <div class="order-items-section">
-                <h4>Order Items:</h4>
+                <h4>Order Items</h4>
                 {% for item in order.order_items %}
                 <div class="order-item">
                     <span>{{ item.product_name }} ({{ item.quantity }} x ₹{{ "%.2f"|format(item.unit_price) }})</span>
-                    <span style="font-weight: bold;">₹{{ "%.2f"|format(item.total_price) }}</span>
+                    <span style="font-weight: 600;">₹{{ "%.2f"|format(item.total_price) }}</span>
                 </div>
                 {% endfor %}
             </div>
 
             {% if order.notes %}
-            <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <strong>Your Notes:</strong> {{ order.notes }}
+            <div style="background: #fff3cd; padding: 12px; border: 1px solid #ffc107; margin-top: 12px; font-size: 13px;">
+                <strong style="text-transform: uppercase; font-size: 11px;">Your Notes:</strong> {{ order.notes }}
             </div>
             {% endif %}
 
-            <!-- Order Status Timeline -->
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                <strong style="color: #3a662c;">Order Status:</strong>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light);">
+                <strong style="color: var(--primary-dark); font-size: 11px; text-transform: uppercase;">Order Status:</strong>
                 <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                    <span class="{% if order.status in ['pending', 'approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
-                        ✓ Placed
-                    </span>
-                    <span class="{% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
-                        {% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Approved
-                    </span>
-                    <span class="{% if order.status in ['packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
-                        {% if order.status in ['packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Packed
-                    </span>
-                    <span class="{% if order.status in ['dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">
-                        {% if order.status in ['dispatched', 'delivered'] %}✓{% else %}○{% endif %} Dispatched
-                    </span>
-                    <span class="{% if order.status == 'delivered' %}status-badge delivered{% else %}status-badge{% endif %}" style="font-size: 12px;">
-                        {% if order.status == 'delivered' %}✓{% else %}○{% endif %} Delivered
-                    </span>
+                    <span class="{% if order.status in ['pending', 'approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">✓ Placed</span>
+                    <span class="{% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">{% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Approved</span>
+                    <span class="{% if order.status in ['packed', 'dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">{% if order.status in ['packed', 'dispatched', 'delivered'] %}✓{% else %}○{% endif %} Packed</span>
+                    <span class="{% if order.status in ['dispatched', 'delivered'] %}status-badge approved{% else %}status-badge{% endif %}" style="font-size: 12px;">{% if order.status in ['dispatched', 'delivered'] %}✓{% else %}○{% endif %} Dispatched</span>
+                    <span class="{% if order.status == 'delivered' %}status-badge delivered{% else %}status-badge{% endif %}" style="font-size: 12px;">{% if order.status == 'delivered' %}✓{% else %}○{% endif %} Delivered</span>
                 </div>
             </div>
 
-            <!-- Order Actions -->
             <div class="order-actions">
+                <a href="{{ url_for('order_detail', order_id=order.order_id) }}" class="btn btn-primary btn-small">📄 View Full Details</a>
+                
                 {% if order.status == 'pending' %}
-                <button class="btn btn-secondary btn-small" onclick="alert('Order is pending admin approval')">
-                    ⏳ Awaiting Approval
-                </button>
-                
+                    <button class="btn btn-secondary btn-small" disabled>⏳ Awaiting Approval</button>
+                    <form method="POST" action="{{ url_for('repeat_order', order_id=order.order_id) }}">
+                        <button type="submit" class="btn btn-success btn-small btn-outline" onclick="return confirm('Order these items again?')">🔄 Order Again</button>
+                    </form>
                 {% elif order.status == 'cancelled' %}
-                <button class="btn btn-secondary btn-small" onclick="openContactSupport('{{ order.order_number }}')">
-                    📞 Contact Support
-                </button>
-                <span style="color: #e74c3c; font-size: 13px; margin-left: 10px;">Order was cancelled</span>
-                
+                    <button class="btn btn-secondary btn-small" onclick="openContactSupport('{{ order.order_number }}')">📞 Contact Support</button>
+                    <form method="POST" action="{{ url_for('repeat_order', order_id=order.order_id) }}">
+                        <button type="submit" class="btn btn-success btn-small" onclick="return confirm('Reorder these items?')">🔄 Reorder</button>
+                    </form>
+                    <span style="color: #e74c3c; font-size: 13px;">Order was cancelled</span>
                 {% elif order.status == 'delivered' %}
-                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
-                   class="btn btn-primary btn-small"
-                   target="_blank">
-                    📄 Download Invoice
-                </a>
-                <button class="btn btn-secondary btn-small" onclick="openFeedbackModal({{ order.order_id }}, '{{ order.order_number }}')">
-                    ⭐ Give Feedback
-                </button>
-                
+                    <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" class="btn btn-secondary btn-small" target="_blank">📥 Download Invoice</a>
+                    <form method="POST" action="{{ url_for('repeat_order', order_id=order.order_id) }}">
+                        <button type="submit" class="btn btn-success btn-small" onclick="return confirm('Repeat this order?')">🔄 Repeat Order</button>
+                    </form>
+                    <button class="btn btn-secondary btn-small" onclick="openFeedbackModal({{ order.order_id }}, '{{ order.order_number }}')">⭐ Give Feedback</button>
                 {% elif order.status in ['approved', 'packed', 'dispatched'] %}
-                <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
-                   class="btn btn-primary btn-small"
-                   target="_blank">
-                    📄 Download Invoice
-                </a>
+                    <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" class="btn btn-secondary btn-small" target="_blank">📥 Download Invoice</a>
+                    <form method="POST" action="{{ url_for('repeat_order', order_id=order.order_id) }}">
+                        <button type="submit" class="btn btn-success btn-small btn-outline" onclick="return confirm('Order these items again?')">🔄 Order Again</button>
+                    </form>
                 {% endif %}
             </div>
 
@@ -438,10 +556,11 @@
     </div>
     {% else %}
     <div class="card">
-        <div style="text-align: center; padding: 40px; color: #999;">
-            <div style="font-size: 48px; margin-bottom: 15px;">📦</div>
-            <p>You haven't placed any orders yet.</p>
-            <a href="{{ url_for('place_order') }}" class="btn btn-primary" style="margin-top: 15px;">Place Your First Order</a>
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📦</div>
+            <h3 style="margin-bottom: 10px;">No Orders Yet</h3>
+            <p style="margin-bottom: 20px;">You haven't placed any orders yet.</p>
+            <a href="{{ url_for('place_order') }}" class="btn btn-primary">Place Your First Order</a>
         </div>
     </div>
     {% endif %}
@@ -456,22 +575,16 @@
             <button class="modal-close" onclick="closeFeedbackModal()">×</button>
         </div>
         <div class="modal-body" id="feedbackBody">
-            <p style="text-align: center; color: #666; margin-bottom: 10px;">
-                Order: <strong id="feedbackOrderNumber"></strong>
-            </p>
-            <div class="star-rating" id="starRating">
-                <span class="star" data-rating="1" onclick="setRating(1)">★</span>
-                <span class="star" data-rating="2" onclick="setRating(2)">★</span>
-                <span class="star" data-rating="3" onclick="setRating(3)">★</span>
-                <span class="star" data-rating="4" onclick="setRating(4)">★</span>
-                <span class="star" data-rating="5" onclick="setRating(5)">★</span>
+            <p style="text-align: center; color: #666;">Order: <strong id="feedbackOrderNumber"></strong></p>
+            <div class="star-rating">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
             </div>
             <div class="rating-text" id="ratingText"></div>
-            <textarea 
-                class="comments-box" 
-                id="feedbackComments" 
-                placeholder="Tell us about your experience (optional)..."
-            ></textarea>
+            <textarea class="comments-box" id="feedbackComments" placeholder="Tell us about your experience..."></textarea>
         </div>
         <div class="modal-footer">
             <button class="modal-btn modal-btn-secondary" onclick="closeFeedbackModal()">Cancel</button>
@@ -488,10 +601,7 @@
             <button class="modal-close" onclick="closeSupportModal()">×</button>
         </div>
         <div class="modal-body">
-            <p style="text-align: center; color: #666; margin-bottom: 20px;">
-                We're here to help with order: <strong id="supportOrderNumber"></strong>
-            </p>
-            
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">Order: <strong id="supportOrderNumber"></strong></p>
             <div class="support-option" onclick="contactEmail()">
                 <div class="support-icon">📧</div>
                 <div class="support-info">
@@ -499,7 +609,6 @@
                     <p>support@royalbeverages.com</p>
                 </div>
             </div>
-
             <div class="support-option" onclick="contactPhone()">
                 <div class="support-icon">📱</div>
                 <div class="support-info">
@@ -507,7 +616,6 @@
                     <p>+91-1234567890</p>
                 </div>
             </div>
-
             <div class="support-option" onclick="contactWhatsApp()">
                 <div class="support-icon">💬</div>
                 <div class="support-info">
@@ -529,28 +637,15 @@
     function filterOrders() {
         const searchInput = document.getElementById('searchInput').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;
-        
         const orderCards = document.querySelectorAll('.order-card');
         
         orderCards.forEach(card => {
             const orderNumber = card.getAttribute('data-order-number');
             const status = card.getAttribute('data-status');
-            
-            let showCard = true;
-            
-            if (searchInput && !orderNumber.includes(searchInput)) {
-                showCard = false;
-            }
-            
-            if (statusFilter && status !== statusFilter) {
-                showCard = false;
-            }
-            
-            card.style.display = showCard ? 'block' : 'none';
+            card.style.display = ((!searchInput || orderNumber.includes(searchInput)) && (!statusFilter || status === statusFilter)) ? 'block' : 'none';
         });
     }
 
-    // Feedback Modal Functions
     function openFeedbackModal(orderId, orderNumber) {
         currentOrderId = orderId;
         currentRating = 0;
@@ -567,118 +662,59 @@
 
     function setRating(rating) {
         currentRating = rating;
-        const stars = document.querySelectorAll('.star');
-        const ratingText = document.getElementById('ratingText');
-        
         const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-        ratingText.textContent = labels[rating];
-        
-        stars.forEach((star, index) => {
-            if (index < rating) {
-                star.classList.add('active');
-            } else {
-                star.classList.remove('active');
-            }
+        document.getElementById('ratingText').textContent = labels[rating];
+        document.querySelectorAll('.star').forEach((star, i) => {
+            star.classList.toggle('active', i < rating);
         });
     }
 
     function submitFeedback() {
-        if (currentRating === 0) {
-            alert('Please select a rating');
-            return;
-        }
-
-        const comments = document.getElementById('feedbackComments').value;
+        if (currentRating === 0) { alert('Please select a rating'); return; }
         const submitBtn = document.getElementById('submitBtn');
-        
         submitBtn.textContent = 'Submitting...';
         submitBtn.disabled = true;
 
         fetch('/feedback/submit', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 order_id: currentOrderId,
                 rating: currentRating,
-                comments: comments
+                comments: document.getElementById('feedbackComments').value
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccessMessage();
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) {
+                document.getElementById('feedbackBody').innerHTML = '<div class="success-message"><div class="success-icon">✓</div><h3>Thank You!</h3><p>Your feedback has been submitted.</p></div>';
+                document.querySelector('#feedbackModal .modal-footer').innerHTML = '<button class="modal-btn modal-btn-primary" onclick="closeFeedbackModal()">Close</button>';
+                setTimeout(() => { closeFeedbackModal(); location.reload(); }, 2000);
             } else {
-                alert('Error: ' + data.message);
+                alert('Error: ' + d.message);
                 submitBtn.textContent = 'Submit Feedback';
                 submitBtn.disabled = false;
             }
         })
-        .catch(error => {
-            alert('Error submitting feedback. Please try again.');
+        .catch(() => {
+            alert('Error submitting feedback');
             submitBtn.textContent = 'Submit Feedback';
             submitBtn.disabled = false;
         });
     }
 
-    function showSuccessMessage() {
-        const body = document.getElementById('feedbackBody');
-        const footer = document.querySelector('#feedbackModal .modal-footer');
-        
-        body.innerHTML = `
-            <div class="success-message">
-                <div class="success-icon">✓</div>
-                <h3>Thank You!</h3>
-                <p>Your feedback has been submitted successfully.</p>
-                <p style="color: #999; font-size: 13px;">Your opinion helps us improve our service.</p>
-            </div>
-        `;
-        footer.innerHTML = `
-            <button class="modal-btn modal-btn-primary" onclick="closeFeedbackModal()">Close</button>
-        `;
-        
-        setTimeout(() => {
-            closeFeedbackModal();
-            location.reload();
-        }, 2000);
-    }
-
-    // Support Modal Functions
     let currentSupportOrder = '';
-
     function openContactSupport(orderNumber) {
         currentSupportOrder = orderNumber;
         document.getElementById('supportOrderNumber').textContent = orderNumber;
         document.getElementById('supportModal').classList.add('active');
     }
+    function closeSupportModal() { document.getElementById('supportModal').classList.remove('active'); }
+    function contactEmail() { window.location.href = `mailto:support@royalbeverages.com?subject=Support Request - Order ${currentSupportOrder}`; }
+    function contactPhone() { window.location.href = 'tel:+911234567890'; }
+    function contactWhatsApp() { window.open(`https://wa.me/911234567890?text=Hello, I need help with order ${currentSupportOrder}`, '_blank'); }
 
-    function closeSupportModal() {
-        document.getElementById('supportModal').classList.remove('active');
-    }
-
-    function contactEmail() {
-        const subject = `Support Request - Order ${currentSupportOrder}`;
-        const body = `Hello,\n\nI need assistance with my cancelled order ${currentSupportOrder}.\n\nPlease help me understand why it was cancelled.\n\nThank you.`;
-        window.location.href = `mailto:support@royalbeverages.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }
-
-    function contactPhone() {
-        window.location.href = 'tel:+911234567890';
-    }
-
-    function contactWhatsApp() {
-        const message = `Hello, I need help with my order ${currentSupportOrder}`;
-        window.open(`https://wa.me/911234567890?text=${encodeURIComponent(message)}`, '_blank');
-    }
-
-    // Close modals on overlay click
-    document.getElementById('feedbackModal').addEventListener('click', function(e) {
-        if (e.target === this) closeFeedbackModal();
-    });
-
-    document.getElementById('supportModal').addEventListener('click', function(e) {
-        if (e.target === this) closeSupportModal();
-    });
+    document.getElementById('feedbackModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeFeedbackModal(); });
+    document.getElementById('supportModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSupportModal(); });
 </script>
 {% endblock %}
