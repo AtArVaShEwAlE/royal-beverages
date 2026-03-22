@@ -1,6 +1,9 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
-from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
+try:
+    from flask_mysqldb import MySQL
+except ImportError:
+    MySQL = None 
 from werkzeug.security import check_password_hash, generate_password_hash
 from config import config
 from datetime import datetime
