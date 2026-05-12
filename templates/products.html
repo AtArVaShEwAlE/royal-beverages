@@ -264,7 +264,7 @@
             
             <!-- Product Image -->
             <div class="product-image">
-                {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '') ~ '.png' %}
+                {% set image_name = product.product_name|lower|replace(' ', '')|replace('-', '')|replace('/','') ~ '.png' %}
                 <img src="{{ url_for('static', filename='images/products/' ~ image_name) }}" 
                      alt="{{ product.product_name }}"
                      onerror="this.src='{{ url_for('static', filename='images/products/placeholder.png') }}'">
