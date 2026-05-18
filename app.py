@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
+from flask_login import login_required
 from flask_sqlalchemy import SQLAlchemy
 try:
     from flask_mysqldb import MySQL
@@ -20,6 +21,7 @@ import calendar
 import hashlib
 import re
 import os
+from email_utils import mail
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -28,7 +30,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # 30 days
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.from_object(config['development'])
-
+mail.init_app(app)
 if app.config.get('USE_POSTGRES', False):
     # PostgreSQL via SQLAlchemy
     db = SQLAlchemy(app)
@@ -1094,39 +1096,60 @@ def reject_order(order_id):
     return redirect(url_for('manage_orders'))
 
 
-@app.route('/orders/update-status/<int:order_id>/<status>')
-def update_order_status(order_id, status):
-    """Update order status"""
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
+@app.route('/update_order_status/<int:order_id>', methods=['POST'])
+def update_order_status(order_id):
     if session.get('role') not in ['admin', 'staff']:
-        flash('Access denied', 'danger')
-        return redirect(url_for('client_dashboard'))
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
     
-    valid_statuses = ['approved', 'packed', 'dispatched', 'delivered', 'cancelled']
-    
-    if status not in valid_statuses:
-        flash('Invalid status', 'danger')
-        return redirect(url_for('manage_orders'))
+    new_status = request.form.get('status')
     
     try:
+        # Get client email before updating
         cursor = mysql.connection.cursor()
-        
         cursor.execute("""
-            UPDATE orders 
-            SET status = %s
-            WHERE order_id = %s
-        """, (status, order_id))
+            SELECT c.contact_email, c.contact_person, o.status as current_status
+            FROM orders o
+            JOIN clients c ON o.client_id = c.client_id
+            WHERE o.order_id = %s
+        """, (order_id,))
+        result = cursor.fetchone()
         
-        mysql.connection.commit()
-        cursor.close()
-        
-        flash(f'Order status updated to {status}!', 'success')
-        
+        if result:
+            client_email = result['contact_email']
+            client_name = result['contact_person']
+            current_status = result['current_status']
+            
+            # Update order status
+            cursor.execute("""
+                UPDATE orders 
+                SET status = %s, updated_at = NOW()
+                WHERE order_id = %s
+            """, (new_status, order_id))
+            mysql.connection.commit()
+            cursor.close()
+            
+            # Send email notification if status changed to approved, dispatched, or delivered
+            if new_status.lower() in ['approved', 'dispatched', 'delivered'] and current_status != new_status:
+                from email_utils import send_order_status_email
+                success, message = send_order_status_email(
+                    order_id, 
+                    new_status, 
+                    client_email, 
+                    client_name
+                )
+                
+                if success:
+                    flash(f'Order status updated to {new_status} and email sent to client!', 'success')
+                else:
+                    flash(f'Order status updated but email failed: {message}', 'warning')
+            else:
+                flash(f'Order status updated to {new_status}', 'success')
+        else:
+            flash('Order not found', 'error')
+            
     except Exception as e:
-        print(f"Update order status error: {str(e)}")
-        flash('Error updating order status', 'danger')
+        flash(f'Error updating order: {str(e)}', 'error')
     
     return redirect(url_for('manage_orders'))
 
@@ -3186,4 +3209,6 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug, host='0.0.0.0', port=port)

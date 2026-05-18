@@ -164,6 +164,36 @@
         padding-top: 16px;
         border-top: 1px solid var(--border-light);
     }
+
+        /* Make form buttons look like links/buttons */
+    form button.btn-small {
+        display: inline-block;
+        padding: 6px 12px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    form button.btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    form button.btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    form button.btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    form button.btn-danger:hover {
+        background-color: #c0392b;
+    }
 </style>
 {% endblock %}
 
@@ -294,33 +324,43 @@
                     📄 View Details
                 </a>
                 
-                {% if order.status == 'pending' %}
+            {% if order.status == 'pending' %}
                 <a href="{{ url_for('approve_order', order_id=order.order_id) }}" 
-                   class="btn btn-primary btn-small"
-                   onclick="return confirm('Approve this order?')">
+                class="btn btn-primary btn-small"
+                onclick="return confirm('Approve this order?')">
                     ✓ Approve Order
                 </a>
                 <a href="{{ url_for('reject_order', order_id=order.order_id) }}" 
-                   class="btn btn-danger btn-small"
-                   onclick="return confirm('Cancel this order?')">
+                class="btn btn-danger btn-small"
+                onclick="return confirm('Cancel this order?')">
                     ✗ Cancel Order
                 </a>
-                {% elif order.status == 'approved' %}
-                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='packed') }}" 
-                   class="btn btn-primary btn-small">
-                    📦 Mark as Packed
-                </a>
-                {% elif order.status == 'packed' %}
-                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='dispatched') }}" 
-                   class="btn btn-primary btn-small">
-                    🚚 Mark as Dispatched
-                </a>
-                {% elif order.status == 'dispatched' %}
-                <a href="{{ url_for('update_order_status', order_id=order.order_id, status='delivered') }}" 
-                   class="btn btn-primary btn-small">
-                    ✓ Mark as Delivered
-                </a>
-                {% endif %}
+
+            {% elif order.status == 'approved' %}
+                <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="status" value="packed">
+                    <button type="submit" class="btn btn-primary btn-small">
+                        📦 Mark as Packed
+                    </button>
+                </form>
+
+            {% elif order.status == 'packed' %}
+                <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="status" value="dispatched">
+                    <button type="submit" class="btn btn-primary btn-small">
+                        🚚 Mark as Dispatched
+                    </button>
+                </form>
+
+            {% elif order.status == 'dispatched' %}
+                <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="status" value="delivered">
+                    <button type="submit" class="btn btn-primary btn-small">
+                        ✓ Mark as Delivered
+                    </button>
+                </form>
+
+            {% endif %}
                 
                 {% if order.status in ['approved', 'packed', 'dispatched', 'delivered'] %}
                 <a href="{{ url_for('generate_invoice', order_id=order.order_id) }}" 
