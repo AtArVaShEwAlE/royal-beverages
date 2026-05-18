@@ -3207,6 +3207,9 @@ def internal_server_error(e):
     </html>
     ''', 500
 
+@app.route('/ping')
+def ping():
+    return 'OK', 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
